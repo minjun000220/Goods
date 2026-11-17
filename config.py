@@ -6,6 +6,24 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 
 
+def _load_dotenv(path: Path) -> None:
+    """프로젝트 폴더의 .env 파일을 읽어 환경변수로 넣는다 (이미 설정된 값은 덮어쓰지 않음).
+    Windows 처럼 `source .env` 가 안 되는 환경에서도 키 파일만 두면 동작하게 하기 위함."""
+    if not path.is_file():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        value = value.strip().strip('"').strip("'")
+        if key.strip() and value:
+            os.environ.setdefault(key.strip(), value)
+
+
+_load_dotenv(BASE_DIR / ".env")
+
+
 @dataclass(frozen=True)
 class Settings:
     # 저장소: 기본은 SQLite (운영에서는 postgresql+psycopg://... 로 교체)

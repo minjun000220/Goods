@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "goods-trend"
 version = "0.1.0"
@@ -18,6 +22,11 @@ nlp = ["kiwipiepy>=0.17"]          # 한국어 형태소 분석 (신규 키워�
 browser = ["playwright>=1.44"]     # JS 렌더링이 필요한 사이트
 dashboard = ["streamlit>=1.35"]
 dev = ["pytest>=8"]
+
+[tool.setuptools]
+packages = ["analytics", "api", "collectors", "collectors.fetchers", "collectors.sources",
+            "dashboard", "monitoring", "pipelines", "processing", "storage", "tools"]
+py-modules = ["config"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
