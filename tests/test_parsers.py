@@ -96,3 +96,50 @@ def test_idol_gallery_keeps_only_goods_posts():
     out = CommunityBoardAdapter(None, cfg).parse(raw(cfg.source_id, "board", {"page": 1}, f"<table>{rows}</table>",
                                                      url="https://gall.dcinside.com/board/lists/?id=bts"))
     assert [o.text for o in out] == ["제발 포카 나와줘"]      # '시그'는 오탐 방지로 사전에서 뺐음
+
+
+def test_adapter_gives_up_after_consecutive_failures():
+    import asyncio
+
+    from collectors.base import SourceAdapter
+
+    class Blocked(SourceAdapter):
+        source_id, rate_limit, concurrency = "blocked", 1000.0, 1
+        calls = 0
+
+        def discover(self, keywords):
+            return [CrawlTask(self.source_id, "x", {"i": i}) for i in range(20)]
+
+        async def fetch(self, task):
+            Blocked.calls += 1
+            raise ConnectionError("403")
+
+        def parse(self, raw):
+            return []
+
+    items, st = asyncio.run(Blocked().run([]))
+    assert Blocked.calls == 3 and st.failures == 3            # 20개 중 3번만 시도하고 포기
+    assert "차단 의심" in st.errors[-1]
+
+
+def test_adapter_time_budget_stops_hanging_site():
+    import asyncio
+    import time as _t
+
+    from collectors.base import SourceAdapter
+
+    class Hangs(SourceAdapter):
+        source_id, rate_limit, concurrency, time_budget_sec = "hangs", 1000.0, 1, 0.5
+
+        def discover(self, keywords):
+            return [CrawlTask(self.source_id, "x", {"i": i}) for i in range(10)]
+
+        async def fetch(self, task):
+            await asyncio.sleep(60)                           # 응답 없는 사이트
+
+        def parse(self, raw):
+            return []
+
+    t0 = _t.monotonic()
+    _, st = asyncio.run(Hangs().run([]))
+    assert _t.monotonic() - t0 < 5 and "시간 초과" in " ".join(st.errors)

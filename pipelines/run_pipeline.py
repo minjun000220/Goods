@@ -33,7 +33,9 @@ async def collect_and_process(adapters: list[SourceAdapter], keywords: list[str]
     raw_store = make_raw_store(settings.raw_store, settings.raw_dir, settings.raw_keep_days)
     raw_store.cleanup()
     # 소스들은 서로 독립 → 동시에 수집
+    log.info("수집 시작: 소스 %d개, 검색어 %d개", len(adapters), len(keywords))
     results = await asyncio.gather(*(a.run(keywords, raw_store) for a in adapters))
+    log.info("수집 완료 → DB 저장")
     with session_scope() as session:
         repo = Repository(session)
         processor = Processor(repo)

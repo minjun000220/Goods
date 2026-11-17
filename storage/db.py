@@ -26,7 +26,8 @@ def make_engine(url: str) -> Engine:
         Path(url.removeprefix("sqlite:///")).parent.mkdir(parents=True, exist_ok=True)
         return create_engine(url)
     # 클라우드 DB: 끊긴 연결을 자동으로 걸러내고(pre_ping), 연결 수를 작게 유지
-    return create_engine(url, pool_pre_ping=True, pool_size=3, max_overflow=2)
+    return create_engine(url, pool_pre_ping=True, pool_size=3, max_overflow=2,
+                         connect_args={"connect_timeout": 15})   # DB 접속이 안 되면 15초 안에 에러
 
 
 engine = make_engine(settings.database_url)

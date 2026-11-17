@@ -125,6 +125,8 @@ class SourceAdapter(ABC):
     source_id: str = "unknown"
     rate_limit: float = 1.0      # 초당 요청 수
     concurrency: int = 2         # 동시 요청 수
+    max_consecutive_failures: int = 3   # 연속 이만큼 실패하면 이 사이트는 이번 실행에서 포기 (차단 의심)
+    time_budget_sec: float = 600.0      # 사이트 하나에 쓰는 최대 시간 (넘으면 모은 것까지만 저장)
 
     def __init__(self, fetcher=None):
         self.fetcher = fetcher
@@ -147,29 +149,45 @@ class SourceAdapter(ABC):
     ) -> tuple[list[ParsedItem], RunStats]:
         """discover → (rate limit) → fetch → 원본 저장 → parse 를 수행한다.
 
-        작업 하나가 실패해도 나머지는 계속 진행한다.
+        - 작업 하나가 실패해도 나머지는 계속 진행한다.
+        - 연속으로 max_consecutive_failures 번 실패하면 사이트가 막은 것으로 보고 남은 작업을 건너뛴다.
+        - time_budget_sec 를 넘기면 남은 작업을 건너뛰고, 그때까지 모은 것만 돌려준다.
         """
         stats = RunStats(source_id=self.source_id, started_at=datetime.now())
         tasks = self.discover(keywords)
         stats.tasks = len(tasks)
         sem = asyncio.Semaphore(self.concurrency)
         items: list[ParsedItem] = []
+        state = {"consecutive": 0, "gave_up": None}
+        deadline = time.monotonic() + self.time_budget_sec
 
         async def _one(task: CrawlTask) -> None:
             async with sem:
+                if state["gave_up"]:
+                    return
+                if time.monotonic() > deadline:
+                    state["gave_up"] = f"시간 초과 ({self.time_budget_sec:.0f}초)"
+                    return
                 await self.limiter.acquire()
                 try:
-                    raw = await self.fetch(task)
+                    raw = await asyncio.wait_for(self.fetch(task), timeout=max(1.0, deadline - time.monotonic()))
                     if raw_store is not None:
                         raw_store.save(raw)
                     parsed = self.parse(raw)
                     items.extend(parsed)
+                    state["consecutive"] = 0
                 except Exception as exc:  # noqa: BLE001 - 소스 하나의 실패가 전체를 멈추면 안 된다
                     stats.failures += 1
                     stats.errors.append(f"{task.params}: {exc!r}")
                     log.warning("[%s] task failed %s: %r", self.source_id, task.params, exc)
+                    state["consecutive"] += 1
+                    if state["consecutive"] >= self.max_consecutive_failures and not state["gave_up"]:
+                        state["gave_up"] = f"연속 {state['consecutive']}회 실패 (차단 의심)"
 
         await asyncio.gather(*(_one(t) for t in tasks))
+        if state["gave_up"]:
+            stats.errors.append(f"중단: {state['gave_up']}")
+            log.warning("[%s] 남은 작업을 건너뜀 — %s", self.source_id, state["gave_up"])
         stats.items = len(items)
         stats.finished_at = datetime.now()
         log.info("[%s] tasks=%d failures=%d items=%d",

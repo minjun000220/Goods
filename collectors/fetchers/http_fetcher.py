@@ -23,11 +23,11 @@ class RobotsDisallowed(Exception):
 
 
 class HttpFetcher:
-    def __init__(self, user_agent: str, timeout: float = 15.0, max_retries: int = 4):
+    def __init__(self, user_agent: str, timeout: float = 15.0, max_retries: int = 2):
         self.user_agent = user_agent
         self.max_retries = max_retries
         self.client = httpx.AsyncClient(
-            timeout=timeout,
+            timeout=httpx.Timeout(timeout, connect=10.0),
             headers={"User-Agent": user_agent, "Accept-Language": "ko-KR,ko;q=0.9"},
             follow_redirects=True,
         )
@@ -92,7 +92,10 @@ class HttpFetcher:
         return (await self.request("GET", url, **kwargs)).text
 
 
+MAX_RETRY_WAIT = 30.0   # 사이트가 "한 시간 뒤에 오라"고 해도 최대 30초만 기다리고 실패 처리
+
+
 def _retry_delay(resp: httpx.Response | None, attempt: int) -> float:
     if resp is not None and (ra := resp.headers.get("Retry-After", "")).isdigit():
-        return float(ra)
-    return min(60.0, 2 ** attempt) + random.uniform(0, 1)
+        return min(float(ra), MAX_RETRY_WAIT)
+    return min(MAX_RETRY_WAIT, 2 ** attempt) + random.uniform(0, 1)
