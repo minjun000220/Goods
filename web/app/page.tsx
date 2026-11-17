@@ -15,7 +15,6 @@ export default async function Home() {
     );
   }
   const [ranking, insight] = await Promise.all([getRanking(asOf), getInsight(asOf)]);
-  const firstDay = ranking.every((r) => r.rankChange === null);
 
   return (
     <main className="wrap">
@@ -25,7 +24,6 @@ export default async function Home() {
       </header>
       <p className="legend-line">
         핫지수 0~100 · <b>50 = 평소 수준</b>, 70 이상 상승, 85 이상 급상승
-        {firstDay && " · 데이터가 2주 이상 쌓이면 순위가 정확해져요"}
       </p>
 
       <div className="layout">
