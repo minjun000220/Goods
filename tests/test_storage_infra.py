@@ -27,3 +27,11 @@ def test_raw_store_gzip_and_retention(tmp_path):
 
 def test_raw_store_off():
     assert isinstance(make_raw_store("off", None, 7), NullRawStore)
+
+
+def test_raw_store_keep_forever(tmp_path):
+    store = LocalRawStore(tmp_path, keep_days=0)
+    store.save(RawDocument(CrawlTask("kream", "search", {}), "https://x/old",
+                           datetime(2020, 1, 1, 12), "html", "<p>old</p>"))
+    assert store.cleanup(today=date(2026, 11, 17)) == 0
+    assert (tmp_path / "kream" / "2020-01-01").exists()
