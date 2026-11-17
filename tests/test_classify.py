@@ -17,6 +17,12 @@ def test_mentions_and_noise():
     assert classify_goods_type("[공식] 포카 랜덤 ★당일발송★") == "포토카드"
 
 
+def test_spacing_variants_and_new_aliases():
+    assert classify_goods_type("세븐틴 2027 시즌 그리팅") == "시즌그리팅"
+    assert classify_goods_type("아이브 포토 카드 세트") == "포토카드"
+    assert classify_goods_type("토이스토리 맥세이프 케이스") == "폰케이스"
+
+
 def test_unknown_type_is_none():
     assert classify_goods_type("치이카와 말랑이 스퀴시") is None
     assert classify_goods_type("albumin 보충제") is None     # 영문 별칭은 단어 경계 지킴

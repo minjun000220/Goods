@@ -18,7 +18,10 @@ from bs4 import BeautifulSoup
 from collectors.base import CrawlTask, ListingSnapshot, RawDocument, SourceAdapter
 from processing.normalize import parse_price
 
-SEARCH_URL = "https://kream.co.kr/search?keyword={kw}"
+SEARCH_URL = "https://kream.co.kr/search?keyword={kw}&tab=products&shop_category_id={cats}"
+# KREAM 카테고리 (2026-11 페이지 데이터에서 확인): 67 = 컬렉터블(피규어·굿즈·인형 등), 108 = 키링
+# 필터가 없으면 "쿠션" → 나이키 쿠션화, "머그" → 에르메스 머그처럼 굿즈가 아닌 상품이 섞인다.
+GOODS_CATEGORIES = ("67", "108")
 PRICE_RE = re.compile(r"^[\d,]+원$")
 
 
@@ -37,11 +40,15 @@ class KreamAdapter(SourceAdapter):
     rate_limit = 0.2       # 5초에 1회
     concurrency = 1
 
+    def __init__(self, fetcher=None, categories: tuple[str, ...] = GOODS_CATEGORIES):
+        super().__init__(fetcher)
+        self.categories = categories
+
     def discover(self, keywords: list[str]) -> list[CrawlTask]:
         return [CrawlTask(self.source_id, "search", {"keyword": kw}) for kw in keywords]
 
     async def fetch(self, task: CrawlTask) -> RawDocument:
-        url = SEARCH_URL.format(kw=quote(task.params["keyword"]))
+        url = SEARCH_URL.format(kw=quote(task.params["keyword"]), cats=",".join(self.categories))
         return RawDocument(task, url, datetime.now(), "html", await self.fetcher.get_text(url))
 
     def parse(self, raw: RawDocument) -> list[ListingSnapshot]:

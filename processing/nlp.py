@@ -29,12 +29,24 @@ def _index(d: dict[str, list[str]]) -> list[tuple[re.Pattern, str, str]]:
 
 TYPE_INDEX = _index(GOODS_TYPE_ALIASES)
 
+# 띄어쓰기를 무시한 비교용: 한글 별칭(3글자 이상)을 공백 없이 저장
+_COMPACT_ALIASES = sorted(
+    {(a.replace(" ", "").lower(), canonical)
+     for canonical, aliases in GOODS_TYPE_ALIASES.items() for a in aliases
+     if not a.isascii() and len(a.replace(" ", "")) >= 3},
+    key=lambda r: -len(r[0]),
+)
+
 
 def classify_goods_type(text: str) -> str | None:
     """'[공식] aespa 응원봉 ★당일발송★' → '응원봉'. 판별 불가면 None."""
     t = clean_title(text)
     for pat, canonical, _ in TYPE_INDEX:
         if pat.search(t):
+            return canonical
+    compact = t.replace(" ", "")              # "시즌 그리팅", "포토 카드", "봉제 인형" 처럼 띄어 쓴 표기
+    for alias, canonical in _COMPACT_ALIASES:
+        if alias in compact:
             return canonical
     return None
 
