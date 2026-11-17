@@ -36,4 +36,10 @@ def test_demo_end_to_end(session):
     assert sum(v["points"] for v in b["signals"].values()) > 30           # 근거 점수 합계
 
     assert detect_mention_bursts(session, end)[0]["goods_type"] == "인형"
+    Repository(session).save_insight(end, detect_mention_bursts(session, end), [{"keyword": "말랑이"}])
+    Repository(session).save_insight(end, [], [{"keyword": "말랑이"}])        # 같은 날 다시 저장 = 덮어쓰기
+    from sqlalchemy import func, select
+
+    from storage.models import DailyInsight
+    assert session.scalar(select(func.count()).select_from(DailyInsight)) == 1
     assert discover_new_goods_types(session, end)[0]["keyword"] == "말랑이"

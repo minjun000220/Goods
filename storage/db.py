@@ -35,8 +35,24 @@ SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
 
 def init_db(eng: Engine = engine) -> None:
-    """개발용 테이블 생성. 운영에서는 Alembic 마이그레이션을 쓴다."""
+    """테이블 생성 (없을 때만). 운영에서 스키마가 크게 바뀌면 Alembic 마이그레이션을 쓴다."""
     Base.metadata.create_all(eng)
+    if eng.dialect.name == "postgresql":
+        _enable_rls(eng)
+
+
+def _enable_rls(eng: Engine) -> None:
+    """Supabase 보안: 모든 테이블에 RLS(행 수준 보안)를 켠다.
+
+    RLS 가 꺼진 테이블은 Supabase 의 공개 키(publishable/anon key)만 있으면 누구나 인터넷으로
+    읽고 '쓸' 수 있다. 정책(policy)을 따로 만들지 않으므로 공개 API 로는 아무것도 못 하고,
+    수집기·웹 서버처럼 DB 주소(비밀번호)로 직접 접속하는 테이블 소유자는 영향을 받지 않는다.
+    """
+    from sqlalchemy import text
+
+    with eng.begin() as conn:
+        for table in Base.metadata.tables:
+            conn.execute(text(f'ALTER TABLE "{table}" ENABLE ROW LEVEL SECURITY'))
 
 
 @contextmanager

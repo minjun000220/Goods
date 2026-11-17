@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from collectors.base import ListingSnapshot as SnapshotDTO
 from collectors.base import MentionRecord, MetricPoint, RunStats
-from storage.models import CrawlRun, HotScore, Listing, ListingSnapshot, Mention, TypeMetric
+from storage.models import CrawlRun, DailyInsight, HotScore, Listing, ListingSnapshot, Mention, TypeMetric
 
 
 CHUNK = 500   # IN (...) 한 번에 넣는 개수
@@ -162,6 +162,10 @@ class Repository:
     def replace_scores(self, as_of: date, rows: list[dict]) -> None:
         self.session.execute(delete(HotScore).where(HotScore.as_of == as_of))
         self.session.add_all(HotScore(as_of=as_of, **r) for r in rows)
+
+    def save_insight(self, as_of: date, bursts: list, new_types: list) -> None:
+        self.session.execute(delete(DailyInsight).where(DailyInsight.as_of == as_of))
+        self.session.add(DailyInsight(as_of=as_of, bursts=bursts, new_types=new_types))
 
     def add_crawl_run(self, s: RunStats) -> None:
         self.session.add(CrawlRun(source_id=s.source_id, started_at=s.started_at, finished_at=s.finished_at,

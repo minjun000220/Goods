@@ -88,6 +88,15 @@ class HotScore(Base):
     breakdown: Mapped[dict] = mapped_column(JSON)
 
 
+class DailyInsight(Base):
+    """그날의 부가 분석 결과 (언급량 급상승, 사전에 없는 새 굿즈 후보) — 웹 화면이 읽는다."""
+    __tablename__ = "daily_insight"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    as_of: Mapped[date] = mapped_column(Date, unique=True)
+    bursts: Mapped[list] = mapped_column(JSON, default=list)
+    new_types: Mapped[list] = mapped_column(JSON, default=list)
+
+
 class CrawlRun(Base):
     __tablename__ = "crawl_run"
     id: Mapped[int] = mapped_column(primary_key=True)

@@ -58,6 +58,15 @@ python -m tools.try_auto "https://쇼핑몰주소/best?page=1"     # 먼저 잘 
 로컬에서 같은 DB 를 보려면 `.env` 에 `DATABASE_URL=<같은 주소>` 를 넣고 API/대시보드를 실행한다.
 원본 페이지는 로컬에서는 gzip 압축 + 7일 보관(`RAW_KEEP_DAYS`), Actions 에서는 저장하지 않는다(`RAW_STORE=off`).
 
+## 웹 화면 (폰·컴퓨터): `web/` → Vercel
+Next.js 앱. 서버에서만 DB 를 읽으므로 DB 비밀번호는 브라우저로 나가지 않는다.
+1. https://vercel.com → GitHub 로 가입 → **Add New → Project** → `Goods` 저장소 **Import**
+2. **Root Directory** 를 `web` 으로 지정 (Framework 는 Next.js 자동 인식)
+3. **Environment Variables**: `DATABASE_URL` = 수집기와 같은 Supabase Session pooler 주소
+4. **Deploy** → 나온 주소를 폰·컴퓨터에서 열기. 폰에서는 공유 → "홈 화면에 추가"
+
+로컬 실행: `cd web && npm install && DATABASE_URL=... npm run dev` → http://localhost:3000
+
 ## 새 소스 추가
 `collectors/base.py` 의 `SourceAdapter` 를 상속해 `discover / fetch / parse` 세 메서드만 구현하고
 `build_adapters()` 에 등록한다.

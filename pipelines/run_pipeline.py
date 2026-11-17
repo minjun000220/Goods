@@ -50,6 +50,7 @@ def score(as_of: date, top: int = 10) -> None:
         scored = run_scoring(session, as_of)
         bursts = detect_mention_bursts(session, as_of)
         new_types = discover_new_goods_types(session, as_of)
+        Repository(session).save_insight(as_of, bursts, new_types[:20])   # 웹 화면용
     if scored.empty:
         print("점수를 계산할 데이터가 없습니다.")
         return
