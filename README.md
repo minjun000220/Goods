@@ -38,6 +38,15 @@ python -m pipelines.run_pipeline collect      # 1회 수집 (키 없는 소스�
 python -m pipelines.run_pipeline score        # 점수 계산
 python -m pipelines.scheduler                 # 상시 실행
 ```
+## 자동 패턴 찾기 (주소만 넣으면 되는 사이트 추가)
+셀렉터를 직접 정하지 않아도 페이지에서 "가격이 붙어 반복되는 칸"을 찾아 상품명·가격·링크·순위를 뽑는다.
+```bash
+python -m tools.try_auto "https://쇼핑몰주소/best?page=1"     # 먼저 잘 뽑히는지 확인
+```
+결과가 괜찮으면 `collectors/registry.py` 의 `AUTO_SITES` 에 추가한다 (`{page}`, `{kw}` 자리표시자 지원).
+직접 셀렉터를 정한 사이트도 셀렉터가 0개를 내면(사이트 개편) 자동 패턴 찾기로 대신 수집하고 경고를 남긴다.
+안 되는 경우: 가격이 화면에 없는 페이지(게시판), JS 로만 그려지는 페이지, 봇 차단·로그인 필요 사이트.
+
 ## 새 소스 추가
 `collectors/base.py` 의 `SourceAdapter` 를 상속해 `discover / fetch / parse` 세 메서드만 구현하고
 `build_adapters()` 에 등록한다.

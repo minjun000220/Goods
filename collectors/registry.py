@@ -18,6 +18,7 @@ from __future__ import annotations
 import logging
 
 from collectors.base import SourceAdapter
+from collectors.sources.auto_site import AutoSiteAdapter, AutoSiteConfig
 from collectors.sources.best_ranking import BestRankingAdapter, RankingConfig
 from collectors.sources.community_board import BoardConfig, CommunityBoardAdapter
 from collectors.sources.coupang_partners import CoupangPartnersAdapter
@@ -87,6 +88,13 @@ BOARDS: list[BoardConfig] = [
     *[dc_gallery(g, minor=False, pages=3, only_goods=True) for g in IDOL_GALLERIES],
 ]
 
+# 자동 패턴 찾기로 수집하는 사이트: 주소만 넣으면 된다 (셀렉터 불필요)
+# 넣기 전에 확인: python -m tools.try_auto "<주소>"   ({page}, {kw} 자리표시자 사용 가능)
+AUTO_SITES: list[AutoSiteConfig] = [
+    # AutoSiteConfig(source_id="some_mall_best", url="https://mall.example/best?page={page}", pages=2),
+    # AutoSiteConfig(source_id="some_mall_search", url="https://mall.example/search?q={kw}"),
+]
+
 # 지금은 꺼둔 소스 (키를 발급받은 뒤 True 로 바꾼다)
 ENABLE_COUPANG = False
 ENABLE_YOUTUBE = False
@@ -118,5 +126,6 @@ def build_adapters(fetcher) -> list[SourceAdapter]:
     # 키 없이 바로 되는 소스
     adapters.append(KreamAdapter(fetcher))
     adapters += [BestRankingAdapter(fetcher, cfg) for cfg in RANKINGS]
+    adapters += [AutoSiteAdapter(fetcher, cfg) for cfg in AUTO_SITES]
     adapters += [CommunityBoardAdapter(fetcher, cfg) for cfg in BOARDS]
     return adapters

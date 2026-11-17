@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import re
 from dataclasses import dataclass
 from datetime import datetime
@@ -18,8 +19,11 @@ from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 
+from collectors.auto_extract import extract_products
 from collectors.base import CrawlTask, ListingSnapshot, RawDocument, SourceAdapter
 from processing.normalize import normalize_stock, parse_price
+
+log = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -68,6 +72,8 @@ class BestRankingAdapter(SourceAdapter):
                 continue
             seen.add(link)
             rows.append((el, t, link))
+        if not rows:
+            return self._auto_fallback(raw)
         offset = (raw.task.params["page"] - 1) * len(rows)
         out = []
         for i, (el, t, link) in enumerate(rows):
@@ -89,3 +95,16 @@ class BestRankingAdapter(SourceAdapter):
                 seller_type=c.seller_type,
             ))
         return out
+
+    def _auto_fallback(self, raw: RawDocument) -> list[ListingSnapshot]:
+        """셀렉터로 아무것도 못 찾으면(사이트 개편 등) 자동 패턴 찾기로 대신 뽑는다."""
+        items = extract_products(raw.body, raw.url)
+        if items:
+            log.warning("[%s] 셀렉터 결과 0개 → 자동 패턴 찾기로 %d개 추출 (셀렉터 점검 필요)",
+                        self.source_id, len(items))
+        offset = (raw.task.params["page"] - 1) * len(items)
+        return [ListingSnapshot(
+            source_id=self.source_id, external_id=hashlib.sha1(it.url.encode()).hexdigest()[:20],
+            title=it.title, url=it.url, observed_at=raw.fetched_at, price=it.price,
+            rank=offset + it.rank, rank_list=f"best:{self.source_id}", seller_type=self.config.seller_type,
+        ) for it in items]
