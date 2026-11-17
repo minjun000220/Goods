@@ -25,7 +25,7 @@ INTERVALS_MIN = {          # source_id → 수집 주기(분)
     "coupang": 3 * 60,
     # 베스트 랭킹 소스는 하루 여러 번 (예: "example_mall_best": 3 * 60)
 }
-DEFAULT_INTERVAL_MIN = 6 * 60
+DEFAULT_INTERVAL_MIN = 24 * 60   # 굿즈 유행은 하루 단위로 변함 → 하루 1번이면 충분
 SCORE_INTERVAL_MIN = 60
 
 

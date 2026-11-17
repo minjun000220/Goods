@@ -31,3 +31,15 @@ def check_parser_health(session: Session, history: int = 10, drop_ratio: float =
             if avg > 0 and last.items < avg * drop_ratio:
                 alerts.append(f"{src}: 수집량 급감 {last.items}건 (평균 {avg:.0f}건) — 셀렉터/응답 구조 확인 필요")
     return alerts
+
+
+if __name__ == "__main__":
+    # GitHub Actions 에서 실행하면 경고가 실행 결과 화면에 노란 표시로 뜬다
+    from storage.db import init_db, session_scope
+
+    init_db()
+    with session_scope() as s:
+        alerts = check_parser_health(s)
+    for a in alerts:
+        print(f"::warning::{a}")
+    print(f"수집 상태 점검: 경고 {len(alerts)}건")

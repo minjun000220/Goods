@@ -16,7 +16,7 @@ from analytics.burst import detect_mention_bursts, discover_new_goods_types
 from analytics.scoring import run_scoring
 from collectors.base import SourceAdapter
 from collectors.fetchers.http_fetcher import HttpFetcher
-from collectors.raw_store import LocalRawStore
+from collectors.raw_store import make_raw_store
 from collectors.registry import build_adapters
 from collectors.sources.demo import DemoSource
 from config import settings
@@ -30,7 +30,8 @@ log = logging.getLogger("pipeline")
 
 
 async def collect_and_process(adapters: list[SourceAdapter], keywords: list[str]) -> None:
-    raw_store = LocalRawStore(settings.raw_dir)
+    raw_store = make_raw_store(settings.raw_store, settings.raw_dir, settings.raw_keep_days)
+    raw_store.cleanup()
     # 소스들은 서로 독립 → 동시에 수집
     results = await asyncio.gather(*(a.run(keywords, raw_store) for a in adapters))
     with session_scope() as session:

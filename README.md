@@ -47,6 +47,17 @@ python -m tools.try_auto "https://쇼핑몰주소/best?page=1"     # 먼저 잘 
 직접 셀렉터를 정한 사이트도 셀렉터가 0개를 내면(사이트 개편) 자동 패턴 찾기로 대신 수집하고 경고를 남긴다.
 안 되는 경우: 가격이 화면에 없는 페이지(게시판), JS 로만 그려지는 페이지, 봇 차단·로그인 필요 사이트.
 
+## 배포: 매일 자동 수집 (GitHub Actions + Supabase)
+1. Supabase 프로젝트 생성 → **Connect** → **Session pooler** 연결 주소 복사 (비밀번호 넣기)
+   - GitHub Actions 는 IPv4 만 되므로 "Direct connection" 이 아니라 **Session pooler** 주소를 쓴다
+2. GitHub 저장소 **Settings → Secrets and variables → Actions → New repository secret**
+   - Name: `DATABASE_URL`, Secret: 1번 주소
+3. **Actions** 탭 → "매일 수집" → **Run workflow** 로 첫 실행 → Supabase **Table Editor** 에서 데이터 확인
+4. 이후 매일 한국 시간 09:17 쯤 자동 실행 (`.github/workflows/collect.yml`)
+
+로컬에서 같은 DB 를 보려면 `.env` 에 `DATABASE_URL=<같은 주소>` 를 넣고 API/대시보드를 실행한다.
+원본 페이지는 로컬에서는 gzip 압축 + 7일 보관(`RAW_KEEP_DAYS`), Actions 에서는 저장하지 않는다(`RAW_STORE=off`).
+
 ## 새 소스 추가
 `collectors/base.py` 의 `SourceAdapter` 를 상속해 `discover / fetch / parse` 세 메서드만 구현하고
 `build_adapters()` 에 등록한다.

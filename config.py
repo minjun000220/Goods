@@ -31,6 +31,9 @@ class Settings:
         "DATABASE_URL", f"sqlite:///{BASE_DIR / 'data' / 'goods_trend.db'}"
     )
     raw_dir: Path = Path(os.getenv("RAW_DIR", str(BASE_DIR / "data" / "raw")))
+    # 원본 페이지 보관: "local"(압축 저장) | "off"(저장 안 함, GitHub Actions 등 서버 환경)
+    raw_store: str = os.getenv("RAW_STORE", "local")
+    raw_keep_days: int = int(os.getenv("RAW_KEEP_DAYS", "7"))
 
     # 네이버 오픈 API (https://developers.naver.com 에서 발급)
     naver_client_id: str | None = os.getenv("NAVER_CLIENT_ID")

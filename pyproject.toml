@@ -15,6 +15,7 @@ dependencies = [
     "fastapi>=0.110",
     "uvicorn>=0.29",
     "beautifulsoup4>=4.12",
+    "psycopg[binary]>=3.1",       # PostgreSQL (Supabase 등) 연결용
 ]
 
 [project.optional-dependencies]
