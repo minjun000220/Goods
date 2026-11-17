@@ -6,9 +6,9 @@
 ├──────────────┼──────────┼─────────────────────────────────────────────────────────────┤
 │ 애니메이트     │ ✅ 바로 됨 │ HTML. robots.txt 가 /goods/ 허용. 신상품·예약상품 판매인기순      │
 │ KREAM        │ ✅ 바로 됨 │ HTML 검색 결과. robots.txt 가 /search 허용. 거래 수·시세        │
-│ 디시인사이드    │ ✅ 바로 됨 │ HTML 갤러리 목록. robots.txt 의 차단 갤러리는 fetcher 가 자동 회피 │
-│ 쿠팡          │ 🔑 키 필요 │ 웹은 봇 차단(403) → 쿠팡 파트너스 공식 API (베스트 카테고리)       │
-│ 유튜브        │ 🔑 키 필요 │ YouTube Data API v3                                          │
+│ 디시인사이드    │ ✅ 바로 됨 │ 굿즈 갤러리 + 아이돌 갤러리 17곳 최신 글 중 굿즈 언급 글만 (HTML)   │
+│ 쿠팡          │ ⏸ 꺼둠   │ 웹은 봇 차단(403) → 쿠팡 파트너스 공식 API (베스트 카테고리)       │
+│ 유튜브        │ ⏸ 꺼둠   │ YouTube Data API v3                                          │
 │ 네이버 쇼핑    │ 🔑 키 필요 │ 공식 검색 API. ⚠️ 2026-07-31 개발자센터 신규 등록 중단,            │
 │              │          │ 쇼핑 검색 종료 보도 있음 → 키를 못 받으면 자동으로 건너뜀           │
 └──────────────┴──────────┴─────────────────────────────────────────────────────────────┘
@@ -56,8 +56,9 @@ RANKINGS: list[RankingConfig] = [
 DC_ROW = 'tr.ub-content.us-post:not([data-type="icon_notice"])'
 
 
-def dc_gallery(gallery_id: str, minor: bool = True, pages: int = 2) -> BoardConfig:
-    """디시인사이드 갤러리 목록. minor=True 면 마이너 갤러리 주소를 쓴다."""
+def dc_gallery(gallery_id: str, minor: bool = True, pages: int = 2, only_goods: bool = False) -> BoardConfig:
+    """디시인사이드 갤러리 최신 글 목록. minor=True 면 마이너 갤러리 주소를 쓴다.
+    (갤러리 내 검색은 오래된 글 위주로 나와서 '요즘' 수요 파악에 맞지 않음 → 최신 글 목록을 훑는다)"""
     prefix = "/mgallery" if minor else ""
     return BoardConfig(
         source_id=f"dc_{gallery_id}",
@@ -68,13 +69,27 @@ def dc_gallery(gallery_id: str, minor: bool = True, pages: int = 2) -> BoardConf
         date_selector="td.gall_date", date_attr="title",
         pages=pages,
         rate_limit=0.3,
+        only_goods=only_goods,
     )
 
 
-# 커뮤니티 게시판 — 굿즈 이야기가 많은 갤러리를 추가한다 (예: 팬덤·캐릭터 갤러리)
-BOARDS: list[BoardConfig] = [
-    dc_gallery("goods"),                              # 굿즈 마이너 갤러리
+# 아이돌 갤러리 (2026-11 존재 확인). 잡담이 대부분이라 굿즈 종류가 언급된 글만 남긴다.
+# 갤러리를 추가하려면 주소의 id= 값을 넣는다. (twice 는 2019년까지의 보관 갤러리라 제외)
+IDOL_GALLERIES = [
+    "bts", "seventeen", "straykids", "nct", "blackpink",                    # 정식 갤러리
+    "aespa", "newjeans", "lesserafim", "riize", "plave", "babymonster",     # 마이너 갤러리
+    "illit", "txt", "boynextdoor", "tws", "kissoflife",
 ]
+
+# 커뮤니티 게시판
+BOARDS: list[BoardConfig] = [
+    dc_gallery("goods"),                              # 굿즈 마이너 갤러리 (전체 글)
+    *[dc_gallery(g, minor=False, pages=3, only_goods=True) for g in IDOL_GALLERIES],
+]
+
+# 지금은 꺼둔 소스 (키를 발급받은 뒤 True 로 바꾼다)
+ENABLE_COUPANG = False
+ENABLE_YOUTUBE = False
 
 
 def build_adapters(fetcher) -> list[SourceAdapter]:
@@ -86,12 +101,16 @@ def build_adapters(fetcher) -> list[SourceAdapter]:
     else:
         log.warning("NAVER_CLIENT_ID/SECRET 없음 → 네이버 쇼핑 건너뜀")
 
-    if s.coupang_access_key and s.coupang_secret_key:
+    if not ENABLE_COUPANG:
+        pass
+    elif s.coupang_access_key and s.coupang_secret_key:
         adapters.append(CoupangPartnersAdapter(fetcher, s.coupang_access_key, s.coupang_secret_key))
     else:
         log.warning("COUPANG_ACCESS_KEY/SECRET_KEY 없음 → 쿠팡 건너뜀")
 
-    if s.youtube_api_key:
+    if not ENABLE_YOUTUBE:
+        pass
+    elif s.youtube_api_key:
         adapters.append(YouTubeAdapter(fetcher, s.youtube_api_key))
     else:
         log.warning("YOUTUBE_API_KEY 없음 → 유튜브 건너뜀")

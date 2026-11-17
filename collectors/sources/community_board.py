@@ -17,6 +17,7 @@ from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 
 from collectors.base import CrawlTask, MentionRecord, RawDocument, SourceAdapter
+from processing.nlp import classify_goods_type
 
 
 @dataclass(frozen=True)
@@ -31,6 +32,8 @@ class BoardConfig:
     date_format: str = "%Y-%m-%d %H:%M:%S"
     pages: int = 3
     rate_limit: float = 0.5                      # 초당 요청 수 (커뮤니티는 보수적으로)
+    only_goods: bool = False                     # True: 굿즈 종류가 언급된 글만 남김 (아이돌 갤러리처럼
+                                                 #       잡담이 대부분인 곳에서 굿즈 수요만 골라내기)
 
 
 class CommunityBoardAdapter(SourceAdapter):
@@ -60,6 +63,8 @@ class CommunityBoardAdapter(SourceAdapter):
             if title_el is None:
                 continue
             title = title_el.get_text(" ", strip=True)
+            if self.config.only_goods and classify_goods_type(title) is None:
+                continue
             href = title_el.get("href") or ""
             link = urljoin(raw.url, href) if href else raw.url
             engagement = 0

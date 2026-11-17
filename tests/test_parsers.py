@@ -84,3 +84,15 @@ def test_youtube_parse():
         "stats": {"v1": {"likeCount": "10", "commentCount": "5"}}})
     out = YouTubeAdapter(None, "k").parse(raw("youtube", "search", {"q": "인형"}, body, "json"))
     assert out[0].text.startswith("[인형]") and out[0].engagement == 15
+
+
+def test_idol_gallery_keeps_only_goods_posts():
+    from collectors.registry import IDOL_GALLERIES, dc_gallery
+    rows = "".join(f"""<tr class="ub-content us-post" data-type="icon_txt">
+      <td class="gall_tit"><a href="/board/view/?id=bts&no={n}">{t}</a></td>
+      <td class="gall_date" title="2026-11-17 10:00:00">11.17</td></tr>""" for n, t in
+                   [(1, "오늘 무대 미쳤다"), (2, "시그 언박싱 후기"), (3, "제발 포카 나와줘")])
+    cfg = dc_gallery(IDOL_GALLERIES[0], minor=False, only_goods=True)
+    out = CommunityBoardAdapter(None, cfg).parse(raw(cfg.source_id, "board", {"page": 1}, f"<table>{rows}</table>",
+                                                     url="https://gall.dcinside.com/board/lists/?id=bts"))
+    assert [o.text for o in out] == ["제발 포카 나와줘"]      # '시그'는 오탐 방지로 사전에서 뺐음

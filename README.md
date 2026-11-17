@@ -22,12 +22,13 @@ uvicorn api.main:app --reload                     # http://localhost:8000/docs
 |---|---|---|
 | 애니메이트 | ✅ 키 없이 됨 | 신상품·예약상품 판매인기순 (HTML) |
 | KREAM | ✅ 키 없이 됨 | 검색 결과: 리셀 시세·누적 거래 수 (HTML) |
-| 디시인사이드 | ✅ 키 없이 됨 | 갤러리 글 목록 (HTML) |
-| 쿠팡 | 🔑 키 필요 | 웹은 봇 차단 → 쿠팡 파트너스 공식 API |
-| 유튜브 | 🔑 키 필요 | YouTube Data API v3 |
+| 디시인사이드 | ✅ 키 없이 됨 | 굿즈 갤러리 + 아이돌 갤러리 16곳 최신 글 중 굿즈 언급 글 (HTML) |
+| 쿠팡 | ⏸ 꺼둠 (키 필요) | 웹은 봇 차단 → 쿠팡 파트너스 공식 API |
+| 유튜브 | ⏸ 꺼둠 (키 필요) | YouTube Data API v3 |
 | 네이버 쇼핑 | 🔑 키 필요 | 공식 API. 2026-07 개발자센터 신규 등록 중단, 쇼핑 검색 종료 보도 있음 |
 
-차단된 사이트는 우회하지 않는다. 소스 추가·수정은 `collectors/registry.py` 한 곳에서 한다.
+차단된 사이트는 우회하지 않는다. 소스 추가·수정은 `collectors/registry.py` 한 곳에서 한다. 쿠팡·유튜브는 키 발급 후 `ENABLE_COUPANG` / `ENABLE_YOUTUBE` 를 True 로.
+아이돌 갤러리는 `IDOL_GALLERIES` 에 갤러리 id 를 추가하면 된다.
 
 ## 실제 데이터 수집
 ```bash
