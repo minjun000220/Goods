@@ -19,12 +19,10 @@ from storage.repository import Repository
 
 WEIGHTS: dict[str, float] = {
     "best_share_momentum": 1.5,  # 베스트 랭킹을 점점 더 많이 차지한다 = 실제로 팔린다
-    "buzz_momentum": 1.2,        # 사람들이 이야기하기 시작했다 (판매보다 먼저 반응)
+    "buzz_momentum": 1.2,        # 커뮤니티·유튜브에서 이야기가 늘었다 (판매보다 먼저 반응)
     "sold_out_ratio": 1.2,       # 공급이 수요를 못 따라간다
     "resale_momentum": 1.0,      # 되팔 만큼 수요가 있다
     "resale_trade_velocity": 1.2,  # 리셀 마켓 거래가 빨라졌다 (웃돈 주고도 산다)
-    "sns_momentum": 1.0,         # X 게시물 수가 늘었다
-    "search_momentum": 1.0,      # 찾아보는 사람이 늘었다
     "review_velocity": 0.8,      # 구매 후기가 빨리 쌓인다
     "listing_growth": 0.5,       # 파는 곳이 늘었다 (공급 쪽 반응, 늦게 따라옴)
 }

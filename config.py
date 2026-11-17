@@ -22,8 +22,6 @@ class Settings:
     coupang_secret_key: str | None = os.getenv("COUPANG_SECRET_KEY")
     # YouTube Data API v3 (Google Cloud Console)
     youtube_api_key: str | None = os.getenv("YOUTUBE_API_KEY")
-    # X API v2 Bearer Token (유료 플랜)
-    x_bearer_token: str | None = os.getenv("X_BEARER_TOKEN")
 
     # 크롤러 식별용 User-Agent: 사이트 운영자가 연락할 수 있게 정직하게 적는다
     user_agent: str = os.getenv("CRAWLER_USER_AGENT", "goods-trend-bot/0.1")

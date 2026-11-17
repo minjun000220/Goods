@@ -19,8 +19,8 @@ RECENT_DAYS = 7
 BASELINE_DAYS = 28
 TOP_K = 20   # 베스트 랭킹 상위 몇 위까지를 '점유율' 계산에 쓸지
 
-SIGNALS = ["best_share_momentum", "search_momentum", "listing_growth", "review_velocity",
-           "sold_out_ratio", "resale_momentum", "resale_trade_velocity", "buzz_momentum", "sns_momentum"]
+SIGNALS = ["best_share_momentum", "listing_growth", "review_velocity", "sold_out_ratio",
+           "resale_momentum", "resale_trade_velocity", "buzz_momentum"]
 
 
 def _bounds(as_of: date) -> tuple[datetime, datetime]:
@@ -157,7 +157,7 @@ def buzz_momentum(mentions: pd.DataFrame) -> pd.Series:
 
 
 def metric_momentum(metrics: pd.DataFrame, name: str) -> pd.Series:
-    """키워드 지표(검색량, 등록 상품 수)의 증가율. 0인 날은 '데이터 없음'으로 보고 평균에서 뺀다."""
+    """키워드 지표(네이버 쇼핑 등록 상품 수 등)의 증가율. 0인 날은 '데이터 없음'으로 보고 평균에서 뺀다."""
     m = metrics[metrics.metric == name]
     if m.empty:
         return pd.Series(dtype=float)
@@ -206,9 +206,7 @@ def compute_type_signals(session: Session, as_of: date) -> pd.DataFrame:
         out["examples"] = examples(snap)
     out["buzz_momentum"] = buzz_momentum(mentions)
     if not metrics.empty:
-        out["search_momentum"] = metric_momentum(metrics, "search_volume")
         out["listing_growth"] = metric_momentum(metrics, "listing_total")
-        out["sns_momentum"] = metric_momentum(metrics, "x_post_count")
     out["mentions_7d"] = (mentions[mentions.age < RECENT_DAYS].groupby("goods_type").size()
                           if not mentions.empty else 0)
     out["mentions_7d"] = out["mentions_7d"].fillna(0).astype(int)

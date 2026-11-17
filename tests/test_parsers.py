@@ -8,7 +8,6 @@ from collectors.sources.best_ranking import BestRankingAdapter
 from collectors.sources.community_board import CommunityBoardAdapter
 from collectors.sources.coupang_partners import CoupangPartnersAdapter, authorization
 from collectors.sources.kream import KreamAdapter, parse_count
-from collectors.sources.x_api import XCountsAdapter
 from collectors.sources.youtube import YouTubeAdapter
 
 NOW = datetime(2026, 11, 17, 12, 0)
@@ -85,11 +84,3 @@ def test_youtube_parse():
         "stats": {"v1": {"likeCount": "10", "commentCount": "5"}}})
     out = YouTubeAdapter(None, "k").parse(raw("youtube", "search", {"q": "인형"}, body, "json"))
     assert out[0].text.startswith("[인형]") and out[0].engagement == 15
-
-
-def test_x_counts_skip_partial_today():
-    body = json.dumps({"data": [
-        {"start": "2026-11-16T00:00:00.000Z", "end": "2026-11-17T00:00:00.000Z", "tweet_count": 120},
-        {"start": "2026-11-17T00:00:00.000Z", "end": "2026-11-17T12:00:00.000Z", "tweet_count": 40}]})
-    out = XCountsAdapter(None, "t").parse(raw("x", "counts", {"keyword": "응원봉"}, body, "json"))
-    assert [(p.date.isoformat(), p.value) for p in out] == [("2026-11-16", 120.0)]

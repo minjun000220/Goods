@@ -1,21 +1,16 @@
 """수집 소스 등록부. 어떤 사이트에서 무엇을 가져오는지 이 파일 한 곳에서 관리한다.
 
-사이트별 상태 (robots.txt·접근 확인: 2026-11)
+사용하는 소스 (robots.txt·접근 확인: 2026-11)
 ┌──────────────┬──────────┬─────────────────────────────────────────────────────────────┐
-│ 사이트        │ 상태      │ 방식 / 사유                                                  │
+│ 사이트        │ 상태      │ 방식                                                         │
 ├──────────────┼──────────┼─────────────────────────────────────────────────────────────┤
-│ 네이버 쇼핑    │ ✅ 키 필요 │ 공식 검색 API                                               │
-│ 네이버 데이터랩 │ ✅ 키 필요 │ 공식 검색어트렌드 API                                         │
-│ 쿠팡          │ ✅ 키 필요 │ 웹은 봇 차단(403) → 쿠팡 파트너스 공식 API (베스트 카테고리)       │
-│ 애니메이트     │ ✅ 바로 됨 │ HTML. robots.txt 가 /goods/ 허용. 판매인기순 목록              │
+│ 애니메이트     │ ✅ 바로 됨 │ HTML. robots.txt 가 /goods/ 허용. 신상품·예약상품 판매인기순      │
 │ KREAM        │ ✅ 바로 됨 │ HTML 검색 결과. robots.txt 가 /search 허용. 거래 수·시세        │
 │ 디시인사이드    │ ✅ 바로 됨 │ HTML 갤러리 목록. robots.txt 의 차단 갤러리는 fetcher 가 자동 회피 │
-│ 유튜브        │ ✅ 키 필요 │ YouTube Data API v3                                          │
-│ X(트위터)     │ ✅ 유료 키 │ X API v2 counts (게시물 수만)                                  │
-│ 중고나라       │ ❌ 제외   │ 봇 요청을 방화벽이 차단(403) — 우회하지 않음                      │
-│ 더쿠          │ ❌ 제외   │ 보안 검사(CAPTCHA) 페이지 반환 — 우회하지 않음                    │
-│ 구글 트렌드    │ ❌ 제외   │ robots.txt 가 /explore 금지, 공식 API 는 신청제(알파)            │
-│ 번개장터       │ ⏸ 보류   │ 웹이 JS 앱이라 HTML 에 데이터 없음. 내부 API 는 공개 API 가 아님   │
+│ 쿠팡          │ 🔑 키 필요 │ 웹은 봇 차단(403) → 쿠팡 파트너스 공식 API (베스트 카테고리)       │
+│ 유튜브        │ 🔑 키 필요 │ YouTube Data API v3                                          │
+│ 네이버 쇼핑    │ 🔑 키 필요 │ 공식 검색 API. ⚠️ 2026-07-31 개발자센터 신규 등록 중단,            │
+│              │          │ 쇼핑 검색 종료 보도 있음 → 키를 못 받으면 자동으로 건너뜀           │
 └──────────────┴──────────┴─────────────────────────────────────────────────────────────┘
 """
 from __future__ import annotations
@@ -27,9 +22,7 @@ from collectors.sources.best_ranking import BestRankingAdapter, RankingConfig
 from collectors.sources.community_board import BoardConfig, CommunityBoardAdapter
 from collectors.sources.coupang_partners import CoupangPartnersAdapter
 from collectors.sources.kream import KreamAdapter
-from collectors.sources.naver_datalab import NaverDataLabAdapter
 from collectors.sources.naver_shopping import NaverShoppingAdapter
-from collectors.sources.x_api import XCountsAdapter
 from collectors.sources.youtube import YouTubeAdapter
 from config import settings
 
@@ -90,9 +83,8 @@ def build_adapters(fetcher) -> list[SourceAdapter]:
 
     if s.naver_client_id and s.naver_client_secret:
         adapters.append(NaverShoppingAdapter(fetcher, s.naver_client_id, s.naver_client_secret))
-        adapters.append(NaverDataLabAdapter(fetcher, s.naver_client_id, s.naver_client_secret))
     else:
-        log.warning("NAVER_CLIENT_ID/SECRET 없음 → 네이버 쇼핑·데이터랩 건너뜀")
+        log.warning("NAVER_CLIENT_ID/SECRET 없음 → 네이버 쇼핑 건너뜀")
 
     if s.coupang_access_key and s.coupang_secret_key:
         adapters.append(CoupangPartnersAdapter(fetcher, s.coupang_access_key, s.coupang_secret_key))
@@ -103,11 +95,6 @@ def build_adapters(fetcher) -> list[SourceAdapter]:
         adapters.append(YouTubeAdapter(fetcher, s.youtube_api_key))
     else:
         log.warning("YOUTUBE_API_KEY 없음 → 유튜브 건너뜀")
-
-    if s.x_bearer_token:
-        adapters.append(XCountsAdapter(fetcher, s.x_bearer_token))
-    else:
-        log.warning("X_BEARER_TOKEN 없음 → X 건너뜀")
 
     # 키 없이 바로 되는 소스
     adapters.append(KreamAdapter(fetcher))

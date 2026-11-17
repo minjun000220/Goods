@@ -56,7 +56,7 @@ def score(as_of: date, top: int = 10) -> None:
         print(f"{int(r['rank']):>2}. {gt:<8} 점수 {r['score']:+.2f}   예) {ex}")
     print("\n--- 신호 상세 ---")
     cols = ["score", "best_share_momentum", "buzz_momentum", "sold_out_ratio",
-            "resale_momentum", "search_momentum", "best_share_now", "mentions_7d"]
+            "resale_momentum", "resale_trade_velocity", "best_share_now", "mentions_7d"]
     with_pd_opts(lambda: print(scored[cols].head(top).round(2).to_string()))
     print("\n=== 📈 언급량 급상승 ===")
     print(bursts or "없음")

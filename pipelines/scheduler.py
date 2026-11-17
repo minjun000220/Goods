@@ -21,7 +21,8 @@ log = logging.getLogger("scheduler")
 
 INTERVALS_MIN = {          # source_id → 수집 주기(분)
     "naver_shopping": 60,
-    "naver_datalab": 24 * 60,
+    "youtube": 24 * 60,        # 하루 할당량 때문에 1일 1회
+    "coupang": 3 * 60,
     # 베스트 랭킹 소스는 하루 여러 번 (예: "example_mall_best": 3 * 60)
 }
 DEFAULT_INTERVAL_MIN = 6 * 60

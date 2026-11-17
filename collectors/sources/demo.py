@@ -109,8 +109,6 @@ class DemoSource(SourceAdapter):
                     "engagement": int(rng.random() * 30 * h)})
             # 종류 키워드 지표 (사전에 있는 종류만 검색어로 추적된다 → 말랑이는 없음)
             if not gkey.startswith("_"):
-                payload["metrics"].append({"keyword": gkey, "metric": "search_volume",
-                                           "value": round(20 * h * rng.uniform(0.9, 1.1), 2)})
                 payload["metrics"].append({"keyword": gkey, "metric": "listing_total",
                                            "value": round(800 * (1 + 0.25 * h) * rng.uniform(0.97, 1.03))})
 
