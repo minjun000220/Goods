@@ -51,25 +51,25 @@ def score(as_of: date, top: int = 10) -> None:
     if scored.empty:
         print("점수를 계산할 데이터가 없습니다.")
         return
-    print(f"\n=== 🔥 요즘 핫한 굿즈 (기준일 {as_of}) ===")
+    bds = scored.attrs.get("breakdowns", {})
+    print(f"\n=== 🔥 요즘 핫한 굿즈 (기준일 {as_of}) — 핫지수 0~100, 50 = 평소 수준 ===")
     for gt, r in scored.head(top).iterrows():
-        ex = ", ".join(r["examples"][:3])
-        print(f"{int(r['rank']):>2}. {gt:<8} 점수 {r['score']:+.2f}   예) {ex}")
-    print("\n--- 신호 상세 ---")
-    cols = ["score", "best_share_momentum", "buzz_momentum", "sold_out_ratio",
-            "resale_momentum", "resale_trade_velocity", "best_share_now", "mentions_7d"]
-    with_pd_opts(lambda: print(scored[cols].head(top).round(2).to_string()))
+        b = bds[gt]
+        if b["rank_change"] is None:
+            change = "  NEW  "
+        else:
+            arrow = "▲" if b["rank_change"] > 0 else ("▼" if b["rank_change"] < 0 else "-")
+            change = f"{arrow}{abs(b['rank_change']) or '':<2} {b['index_change']:+3d}"
+        top_sig = sorted(b["signals"].values(), key=lambda v: -abs(v["points"]))[:2]
+        why = ", ".join(f"{v['label']} {v['points']:+.0f}" for v in top_sig if v["points"])
+        print(f"{int(r['rank']):>2}. {gt:<7} 핫지수 {b['hot_index']:>3}점 {b['label']:<6} [{change}]  "
+              f"근거: {why or '-'}")
+        if r["examples"]:
+            print(f"      예) {', '.join(r['examples'][:3])}")
     print("\n=== 📈 언급량 급상승 ===")
     print(bursts or "없음")
     print("\n=== 🆕 사전에 없는 새 굿즈 종류 후보 (확인 후 dictionaries.py 에 추가) ===")
     print(new_types[:10] or "없음")
-
-
-def with_pd_opts(fn):
-    import pandas as pd
-    with pd.option_context("display.width", 200, "display.max_columns", 20,
-                           "display.unicode.east_asian_width", True):
-        fn()
 
 
 async def run_demo(days: int) -> None:
@@ -78,6 +78,9 @@ async def run_demo(days: int) -> None:
     for i in range(days):
         d = start + timedelta(days=i)
         await collect_and_process([DemoSource(as_of=d, start=start, end=end)], [])
+        if i < days - 1:                    # 날짜별 점수 기록 → 어제 대비 변동, 핫지수 추이 그래프
+            with session_scope() as session:
+                run_scoring(session, d)
     score(end)
 
 

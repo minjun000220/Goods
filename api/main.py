@@ -1,7 +1,8 @@
 """조회 API (FastAPI).
 
   uvicorn api.main:app --reload
-  GET /trending                 요즘 핫한 굿즈 종류 순위
+  GET /trending                 요즘 핫한 굿즈 종류 순위 (핫지수 0~100, 어제 대비 변동, 신호별 기여 점수)
+  GET /goods/{goods_type}/scores     종류별 날짜별 핫지수·순위 추이
   GET /goods/{goods_type}/timeline   종류별 일자 데이터 (베스트 점유율, 언급량, 품절률 …)
   GET /bursts                   언급량 급상승 + 사전에 없는 새 굿즈 종류 후보
   문서: http://localhost:8000/docs
@@ -53,6 +54,18 @@ def trending(as_of: date | None = None, limit: int = Query(20, le=100), s: Sessi
     rows = s.scalars(select(HotScore).where(HotScore.as_of == as_of).order_by(HotScore.rank).limit(limit)).all()
     return {"as_of": as_of,
             "items": [{"rank": r.rank, "goods_type": r.goods_type, "score": r.score, **r.breakdown} for r in rows]}
+
+
+@app.get("/goods/{goods_type}/scores")
+def score_history(goods_type: str, days: int = Query(30, le=365), s: Session = Depends(get_session)):
+    """날짜별 핫지수·순위 추이 (트렌드 그래프용)."""
+    rows = s.scalars(select(HotScore).where(HotScore.goods_type == goods_type)
+                     .order_by(HotScore.as_of.desc()).limit(days)).all()
+    if not rows:
+        raise HTTPException(404, "no scores for this goods type")
+    return {"goods_type": goods_type, "history": [
+        {"date": r.as_of, "hot_index": r.breakdown.get("hot_index"), "rank": r.rank, "score": r.score}
+        for r in reversed(rows)]}
 
 
 @app.get("/goods/{goods_type}/timeline")

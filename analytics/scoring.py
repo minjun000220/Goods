@@ -8,13 +8,16 @@
 """
 from __future__ import annotations
 
+import math
 from datetime import date
 
 import numpy as np
 import pandas as pd
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from analytics.signals import SIGNALS, compute_type_signals
+from storage.models import HotScore
 from storage.repository import Repository
 
 WEIGHTS: dict[str, float] = {
@@ -27,6 +30,33 @@ WEIGHTS: dict[str, float] = {
     "listing_growth": 0.5,       # 파는 곳이 늘었다 (공급 쪽 반응, 늦게 따라옴)
 }
 Z_CLIP = 4.0
+
+SIGNAL_LABELS: dict[str, str] = {
+    "best_share_momentum": "베스트 순위 점유율",
+    "buzz_momentum": "커뮤니티 언급량",
+    "sold_out_ratio": "품절 비율",
+    "resale_momentum": "리셀 매물",
+    "resale_trade_velocity": "리셀 거래 속도",
+    "review_velocity": "리뷰 증가",
+    "listing_growth": "판매처 증가",
+}
+
+
+def hot_index(score: float) -> int:
+    """내부 점수(대략 -2~+2) → 핫지수 0~100. 50 = 평소 수준, 70 이상 = 뜨는 중, 85 이상 = 급상승."""
+    return int(round(100 / (1 + math.exp(-1.5 * score))))
+
+
+def index_label(idx: int) -> str:
+    if idx >= 85:
+        return "🔥 급상승"
+    if idx >= 70:
+        return "📈 상승"
+    if idx > 30:
+        return "➖ 보합"
+    if idx > 15:
+        return "📉 하락"
+    return "🧊 급하락"
 
 
 def robust_z(s: pd.Series) -> pd.Series:
@@ -50,16 +80,49 @@ def score_frame(df: pd.DataFrame) -> pd.DataFrame:
         df[f"z_{sig}"] = robust_z(df[sig].astype(float))
     df["score"] = sum(WEIGHTS[s] * df[f"z_{s}"].fillna(0) for s in SIGNALS) / sum(WEIGHTS.values())
     df["coverage"] = df[SIGNALS].notna().sum(axis=1)
+    df["hot_index"] = df["score"].apply(hot_index)
     df = df.sort_values("score", ascending=False)
     df["rank"] = np.arange(1, len(df) + 1)
     return df
 
 
-def _breakdown(row: pd.Series) -> dict:
-    sig = {s: {"value": round(float(row[s]), 4), "z": round(float(row[f"z_{s}"]), 2)}
+def contributions(row: pd.Series) -> dict[str, float]:
+    """신호별 기여 점수 (핫지수 단위). 모두 더하면 '핫지수 - 50' 과 대략 같다."""
+    total_w = sum(WEIGHTS.values())
+    raw = {s: WEIGHTS[s] * float(row[f"z_{s}"]) / total_w for s in SIGNALS if pd.notna(row[f"z_{s}"])}
+    score = sum(raw.values())
+    if abs(score) < 1e-9:
+        return {s: 0.0 for s in raw}
+    total_pts = hot_index(score) - 50
+    return {s: round(v / score * total_pts, 1) for s, v in raw.items()}
+
+
+def previous_scores(session: Session, as_of: date) -> dict[str, dict]:
+    """as_of 직전 계산일의 종류별 순위·핫지수 (어제 대비 변동 계산용)."""
+    prev_day = session.scalar(select(func.max(HotScore.as_of)).where(HotScore.as_of < as_of))
+    if prev_day is None:
+        return {}
+    rows = session.scalars(select(HotScore).where(HotScore.as_of == prev_day)).all()
+    return {r.goods_type: {"rank": r.rank, "hot_index": r.breakdown.get("hot_index", hot_index(r.score)),
+                           "as_of": prev_day.isoformat()} for r in rows}
+
+
+def _breakdown(row: pd.Series, prev: dict | None) -> dict:
+    pts = contributions(row)
+    sig = {s: {"label": SIGNAL_LABELS[s], "value": round(float(row[s]), 4),
+               "z": round(float(row[f"z_{s}"]), 2), "points": pts.get(s, 0.0)}
            for s in SIGNALS if pd.notna(row[s])}
-    return {"coverage": int(row["coverage"]), "signals": sig,
-            "examples": row.get("examples") or [], "mentions_7d": int(row.get("mentions_7d", 0))}
+    idx = int(row["hot_index"])
+    return {
+        "hot_index": idx,
+        "label": index_label(idx),
+        # 어제 대비: rank_change 양수 = 순위 상승, None = 비교할 이전 기록 없음 (새로 등장)
+        "rank_change": (prev["rank"] - int(row["rank"])) if prev else None,
+        "index_change": (idx - prev["hot_index"]) if prev else None,
+        "prev_as_of": prev["as_of"] if prev else None,
+        "coverage": int(row["coverage"]), "signals": sig,
+        "examples": row.get("examples") or [], "mentions_7d": int(row.get("mentions_7d", 0)),
+    }
 
 
 def run_scoring(session: Session, as_of: date) -> pd.DataFrame:
@@ -68,9 +131,13 @@ def run_scoring(session: Session, as_of: date) -> pd.DataFrame:
     if signals.empty:
         return signals
     scored = score_frame(signals)
-    Repository(session).replace_scores(as_of, [
-        {"goods_type": gt, "score": round(float(r.score), 4), "rank": int(r["rank"]), "breakdown": _breakdown(r)}
-        for gt, r in scored.iterrows()
-    ])
+    prev = previous_scores(session, as_of)
+    rows = [{"goods_type": gt, "score": round(float(r.score), 4), "rank": int(r["rank"]),
+             "breakdown": _breakdown(r, prev.get(gt))} for gt, r in scored.iterrows()]
+    Repository(session).replace_scores(as_of, rows)
     session.flush()
+    for (gt, _), row in zip(scored.iterrows(), rows):
+        scored.loc[gt, "rank_change"] = row["breakdown"]["rank_change"]
+        scored.loc[gt, "index_change"] = row["breakdown"]["index_change"]
+    scored.attrs["breakdowns"] = {r["goods_type"]: r["breakdown"] for r in rows}
     return scored
