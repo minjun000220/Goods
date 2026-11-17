@@ -19,19 +19,21 @@ class Processor:
         self.repo = repo
 
     def handle(self, items: list[ParsedItem]) -> Counter:
+        """종류를 판별한 뒤 묶어서 저장한다 (클라우드 DB 와의 왕복 횟수를 최소화)."""
         stats: Counter = Counter()
+        listings, mentions = [], []
         for item in items:
             if isinstance(item, ListingSnapshot):
                 gt = classify_goods_type(item.title)
                 stats["listing" if gt else "listing_unclassified"] += 1
-                listing = self.repo.upsert_listing(item, gt)
-                self.repo.add_snapshot(listing, item)
+                listings.append((item, gt))
             elif isinstance(item, MentionRecord):
-                gt = classify_goods_type(item.text)
-                if self.repo.add_mention(item, gt):
-                    stats["mention" if gt else "mention_unclassified"] += 1
+                mentions.append((item, classify_goods_type(item.text)))
             elif isinstance(item, MetricPoint):
                 self.repo.upsert_metric(item, classify_goods_type(item.keyword))
                 stats["metric"] += 1
+        self.repo.bulk_save_listings(listings)
+        for gt in self.repo.bulk_add_mentions(mentions):
+            stats["mention" if gt else "mention_unclassified"] += 1
         self.repo.session.flush()
         return stats

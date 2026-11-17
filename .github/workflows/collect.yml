@@ -39,7 +39,7 @@ jobs:
           fi
 
       - name: 수집
-        timeout-minutes: 15
+        timeout-minutes: 25
         run: python -m pipelines.run_pipeline collect
 
       - name: 점수 계산
