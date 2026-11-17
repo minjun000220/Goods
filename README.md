@@ -12,7 +12,7 @@
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev,nlp]"
-python -m pipelines.run_pipeline demo --days 35   # 네트워크 없이 가짜 데이터로 전체 흐름 실행
+DATABASE_URL=sqlite:///data/demo.db python -m pipelines.run_pipeline demo --days 35   # 가짜 데이터 데모 (실제 DB와 분리)
 pytest -q
 uvicorn api.main:app --reload                     # http://localhost:8000/docs
 ```
