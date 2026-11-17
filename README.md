@@ -1,0 +1,47 @@
+# goods-trend
+
+웹(쇼핑몰·중고거래·커뮤니티·검색 트렌드)에서 데이터를 모아 **요즘 뜨는 굿즈 종류**(응원봉, 인형, 키링 …)를 점수로 뽑는 시스템.
+아티스트·캐릭터는 구분하지 않는다: BTS 응원봉, aespa 응원봉 → 모두 '응원봉'.
+
+```
+수집(collectors) → 처리(processing) → 저장(storage) → 분석(analytics) → 서빙(api, dashboard)
+                                   운영(pipelines, monitoring)
+```
+
+## 빠른 시작
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev,nlp]"
+python -m pipelines.run_pipeline demo --days 35   # 네트워크 없이 가짜 데이터로 전체 흐름 실행
+pytest -q
+uvicorn api.main:app --reload                     # http://localhost:8000/docs
+```
+
+## 수집 소스 (robots.txt·접근 확인: 2026-11)
+| 사이트 | 상태 | 방식 |
+|---|---|---|
+| 애니메이트 | ✅ 키 없이 됨 | 신상품·예약상품 판매인기순 (HTML) |
+| KREAM | ✅ 키 없이 됨 | 검색 결과: 리셀 시세·누적 거래 수 (HTML) |
+| 디시인사이드 | ✅ 키 없이 됨 | 갤러리 글 목록 (HTML) |
+| 네이버 쇼핑 / 데이터랩 | 🔑 키 필요 | 공식 API |
+| 쿠팡 | 🔑 키 필요 | 웹은 봇 차단 → 쿠팡 파트너스 공식 API |
+| 유튜브 | 🔑 키 필요 | YouTube Data API v3 |
+| X | 🔑 유료 키 | X API v2 게시물 수 |
+| 중고나라 | ❌ | 봇 요청을 방화벽이 차단 |
+| 더쿠 | ❌ | 보안 검사(CAPTCHA) |
+| 구글 트렌드 | ❌ | robots.txt 가 /explore 금지, 공식 API 는 신청제 |
+| 번개장터 | ⏸ | 웹이 JS 앱, 공개 API 없음 |
+
+차단된 사이트는 우회하지 않는다. 소스 추가·수정은 `collectors/registry.py` 한 곳에서 한다.
+
+## 실제 데이터 수집
+```bash
+cp .env.example .env    # 키 입력 후
+set -a && source .env && set +a
+python -m pipelines.run_pipeline collect      # 1회 수집 (키 없는 소스는 바로 동작)
+python -m pipelines.run_pipeline score        # 점수 계산
+python -m pipelines.scheduler                 # 상시 실행
+```
+## 새 소스 추가
+`collectors/base.py` 의 `SourceAdapter` 를 상속해 `discover / fetch / parse` 세 메서드만 구현하고
+`build_adapters()` 에 등록한다.
