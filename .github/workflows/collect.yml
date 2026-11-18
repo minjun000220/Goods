@@ -5,7 +5,8 @@ name: 매일 수집
 
 on:
   schedule:
-    - cron: "17 0 * * *"      # 매일 00:17 UTC = 한국 시간 09:17 (GitHub 사정으로 몇 분~수십 분 늦어질 수 있음)
+    - cron: "17 0 * * *"      # 매일 00:17 UTC = 한국 시간 09:17 (GitHub 사정으로 늦어지거나 건너뛸 수 있음)
+    - cron: "47 3 * * *"      # 백업: 03:47 UTC = 한국 시간 12:47 — 오전 실행이 이미 성공했으면 아무것도 안 함
   workflow_dispatch:           # Actions 탭에서 "Run workflow" 버튼으로 바로 실행
 
 concurrency:
@@ -38,12 +39,24 @@ jobs:
             exit 1
           fi
 
+      - name: 오늘 이미 수집했는지 확인
+        id: check
+        run: |
+          done=$(python -m pipelines.run_pipeline already-ran | tail -1)
+          echo "done=$done" >> "$GITHUB_OUTPUT"
+          if [ "$done" = "yes" ] && [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "::notice::오늘 수집이 이미 끝나서 이번 (백업) 실행은 건너뜁니다."
+          fi
+
       - name: 수집
+        if: steps.check.outputs.done != 'yes' || github.event_name != 'schedule'
         timeout-minutes: 25
         run: python -m pipelines.run_pipeline collect
 
       - name: 점수 계산
+        if: steps.check.outputs.done != 'yes' || github.event_name != 'schedule'
         run: python -m pipelines.run_pipeline score
 
       - name: 수집 상태 점검
+        if: steps.check.outputs.done != 'yes' || github.event_name != 'schedule'
         run: python -m monitoring.health

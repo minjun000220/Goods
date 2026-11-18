@@ -96,10 +96,13 @@ def best_share(snap: pd.DataFrame) -> pd.DataFrame:
     best = snap[snap.rank_list.fillna("").str.startswith("best:") & (snap["rank"] <= TOP_K)]
     if best.empty:
         return pd.DataFrame(columns=["goods_type", "age", "share"])
-    # 분모: 그날 그 랭킹 목록에서 '분류된' 상품 수가 아니라 TOP_K 칸 전체 (미분류 상품도 칸을 차지)
-    lists_per_day = best.groupby("age")["rank_list"].nunique()
+    # 분모: TOP_K 칸 × (그날 수집된 '랭킹 목록 × 수집 회차' 수). 미분류 상품도 칸을 차지한다.
+    # 하루에 여러 번 수집해도 점유율이 부풀지 않게 회차별 평균이 되도록 회차 수로 나눈다.
+    # 회차 = 같은 목록을 15분 안에 가져온 묶음 (여러 페이지를 연달아 가져와도 한 회차)
+    best = best.assign(run=pd.to_datetime(best["observed_at"]).dt.floor("15min"))
+    runs_per_day = best.groupby("age").apply(lambda g: g[["rank_list", "run"]].drop_duplicates().shape[0])
     counts = best.groupby(["goods_type", "age"]).size().reset_index(name="n")
-    counts["share"] = counts.n / (TOP_K * counts.age.map(lists_per_day))
+    counts["share"] = counts.n / (TOP_K * counts.age.map(runs_per_day))
     return counts[["goods_type", "age", "share"]]
 
 

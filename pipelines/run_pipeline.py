@@ -96,16 +96,35 @@ async def run_collect() -> None:
         await collect_and_process(adapters, list(settings.keywords))
 
 
+def collected_today() -> bool:
+    """오늘(실행 환경 기준 날짜) 아이템을 1개 이상 모은 수집 기록이 있는지."""
+    from datetime import datetime
+
+    from sqlalchemy import func, select
+
+    from storage.models import CrawlRun
+
+    start = datetime.combine(date.today(), datetime.min.time())
+    with session_scope() as s:
+        n = s.scalar(select(func.count()).select_from(CrawlRun)
+                     .where(CrawlRun.started_at >= start, CrawlRun.items > 0))
+    return bool(n)
+
+
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     p = argparse.ArgumentParser()
     sub = p.add_subparsers(dest="cmd", required=True)
     d = sub.add_parser("demo"); d.add_argument("--days", type=int, default=35)
     sub.add_parser("collect")
+    sub.add_parser("already-ran", help="오늘 이미 수집에 성공했으면 'yes', 아니면 'no' 출력 (백업 실행용)")
     s = sub.add_parser("score"); s.add_argument("--as-of", type=date.fromisoformat, default=date.today())
     args = p.parse_args()
 
     init_db()
+    if args.cmd == "already-ran":
+        print("yes" if collected_today() else "no")
+        return
     if args.cmd == "demo":
         asyncio.run(run_demo(args.days))
     elif args.cmd == "collect":

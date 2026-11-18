@@ -52,3 +52,20 @@ def test_contributions_sum_to_index_minus_50():
     pts = contributions(row)
     assert abs(sum(pts.values()) - (row["hot_index"] - 50)) <= 1
     assert pts["buzz_momentum"] > 0
+
+
+def test_best_share_not_inflated_by_multiple_runs_per_day():
+    from datetime import datetime
+
+    from analytics.signals import best_share
+
+    def run(t, types):
+        return [{"observed_at": t, "age": 0, "rank": i + 1, "rank_list": "best:shop", "goods_type": g}
+                for i, g in enumerate(types)]
+    types = ["인형"] * 10 + ["키링"] * 10
+    once = pd.DataFrame(run(datetime(2026, 11, 17, 9), types))
+    thrice = pd.DataFrame(run(datetime(2026, 11, 17, 9), types) + run(datetime(2026, 11, 17, 10), types)
+                          + run(datetime(2026, 11, 17, 11), types))
+    a = best_share(once).set_index("goods_type")["share"]
+    b = best_share(thrice).set_index("goods_type")["share"]
+    assert a["인형"] == b["인형"] == 0.5
