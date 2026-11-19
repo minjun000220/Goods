@@ -53,7 +53,8 @@ python -m tools.try_auto "https://쇼핑몰주소/best?page=1"     # 먼저 잘 
 2. GitHub 저장소 **Settings → Secrets and variables → Actions → New repository secret**
    - Name: `DATABASE_URL`, Secret: 1번 주소
 3. **Actions** 탭 → "매일 수집" → **Run workflow** 로 첫 실행 → Supabase **Table Editor** 에서 데이터 확인
-4. 이후 매일 한국 시간 09:17 쯤 자동 실행 (`.github/workflows/collect.yml`)
+4. 이후 매일 한국 시간 09:17 부터 2시간마다 시도해서 그날 처음 성공한 1번만 수집 (`.github/workflows/collect.yml`)
+   GitHub 예약 실행은 몇 시간씩 늦거나 빠질 수 있어서 여러 번 시도하도록 했다.
 
 로컬에서 같은 DB 를 보려면 `.env` 에 `DATABASE_URL=<같은 주소>` 를 넣고 API/대시보드를 실행한다.
 원본 페이지는 로컬에서는 gzip 압축 + 7일 보관(`RAW_KEEP_DAYS`), Actions 에서는 저장하지 않는다(`RAW_STORE=off`).

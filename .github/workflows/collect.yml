@@ -4,9 +4,11 @@
 name: 매일 수집
 
 on:
+  # GitHub 예약 실행은 몇 시간씩 늦거나 빠지는 일이 잦다 (2026-11 실제로 4시간 지연·누락 발생).
+  # 그래서 한국 시간 09:17 ~ 23:17 사이 2시간마다 시도하고, 그날 먼저 도착한 실행만 수집한다.
+  # 나머지는 "오늘 이미 수집했는지 확인" 단계에서 30초 안에 끝난다.
   schedule:
-    - cron: "17 0 * * *"      # 매일 00:17 UTC = 한국 시간 09:17 (GitHub 사정으로 늦어지거나 건너뛸 수 있음)
-    - cron: "47 3 * * *"      # 백업: 03:47 UTC = 한국 시간 12:47 — 오전 실행이 이미 성공했으면 아무것도 안 함
+    - cron: "17 0-14/2 * * *"   # 00:17~14:17 UTC = 한국 시간 09:17~23:17, 2시간 간격
   workflow_dispatch:           # Actions 탭에서 "Run workflow" 버튼으로 바로 실행
 
 concurrency:
@@ -20,6 +22,7 @@ jobs:
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       RAW_STORE: "off"          # Actions 디스크는 실행 후 사라지므로 원본 저장 안 함
+      TZ: Asia/Seoul             # 날짜·시간을 한국 기준으로 (늦은 실행이 하루 어긋나지 않게)
       PYTHONUNBUFFERED: "1"
     steps:
       - uses: actions/checkout@v4
