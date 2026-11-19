@@ -1,0 +1,414 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>굿즈 트렌드 상세 설명서</title>
+<style>
+@page { size: A4; margin: 18mm 17mm 20mm; }
+* { box-sizing: border-box; }
+body { font-family: "NanumBarunGothic","NanumGothic",sans-serif; color:#1d1d1b; font-size:10.4pt; line-height:1.68; margin:0; word-break:keep-all; }
+h1 { font-family:"NanumSquare","NanumBarunGothic"; font-size:25pt; margin:0 0 6px; letter-spacing:-0.5px; }
+h2 { font-family:"NanumSquare","NanumBarunGothic"; font-size:16pt; margin:0 0 10px; padding-bottom:6px; border-bottom:2px solid #1d1d1b; letter-spacing:-0.3px; }
+h3 { font-size:12pt; margin:18px 0 6px; }
+p { margin:6px 0; }
+.chapter { break-before: page; }
+.no { color:#2a78d6; margin-right:6px; }
+.muted { color:#6b6a65; }
+.small { font-size:9pt; }
+.lead { font-size:11.2pt; color:#3a3936; }
+.box { border:1px solid #dddcd7; border-radius:10px; padding:12px 14px; margin:10px 0; background:#fbfbfa; break-inside:avoid; }
+.why { border-left:4px solid #2a78d6; background:#f2f7fd; padding:9px 12px; border-radius:0 8px 8px 0; margin:10px 0; break-inside:avoid; }
+.why b:first-child { color:#1c5cab; }
+.easy { border-left:4px solid #eda100; background:#fff8e8; padding:9px 12px; border-radius:0 8px 8px 0; margin:10px 0; break-inside:avoid; }
+.warn { border-left:4px solid #e34948; background:#fdf1f1; padding:9px 12px; border-radius:0 8px 8px 0; margin:10px 0; break-inside:avoid; }
+.formula { font-family:"NanumGothicCoding","NanumBarunGothic"; background:#1d1d1b; color:#f5f4f0; border-radius:8px; padding:10px 14px; margin:8px 0; font-size:10.2pt; line-height:1.75; break-inside:avoid; }
+.formula .c { color:#9ec5f4; }
+table { width:100%; border-collapse:collapse; margin:8px 0; font-size:9.6pt; break-inside:avoid; }
+th, td { border-bottom:1px solid #e3e2de; padding:6px 7px; text-align:left; vertical-align:top; }
+th { background:#f3f2ef; font-weight:700; }
+td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+.chart text { font-size:10px; fill:#6b6a65; font-family:"NanumBarunGothic"; }
+/* 표지 */
+.cover { height: 250mm; display:flex; flex-direction:column; justify-content:space-between; }
+.cover .tag { display:inline-block; background:#e34948; color:#fff; border-radius:999px; padding:3px 12px; font-size:9.5pt; }
+.cover h1 { font-size:34pt; margin-top:18px; }
+.cover .sub { font-size:14pt; color:#52514e; margin-top:6px; }
+.kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:26px; }
+.kpi { border:1px solid #dddcd7; border-radius:12px; padding:14px; }
+.kpi .v { font-size:19pt; font-weight:800; font-family:"NanumSquare"; }
+.kpi .k { color:#6b6a65; font-size:9pt; }
+/* 구조도 */
+.flow { display:flex; align-items:stretch; gap:0; margin:12px 0; break-inside:avoid; }
+.node { flex:1; border:1.5px solid #1d1d1b; border-radius:12px; padding:10px 9px; background:#fff; text-align:center; }
+.node .t { font-weight:800; font-size:10.6pt; }
+.node .d { font-size:8.6pt; color:#52514e; line-height:1.45; margin-top:4px; }
+.node.hl { background:#eef5fd; border-color:#2a78d6; }
+.arrow { width:22px; display:flex; align-items:center; justify-content:center; font-size:15pt; color:#2a78d6; font-weight:800; }
+.steps { counter-reset: s; list-style:none; padding:0; margin:8px 0; }
+.steps li { counter-increment:s; position:relative; padding:6px 0 6px 34px; border-bottom:1px dashed #e3e2de; }
+.steps li::before { content:counter(s); position:absolute; left:0; top:6px; width:24px; height:24px; border-radius:50%; background:#1d1d1b; color:#fff; font-size:9.5pt; text-align:center; line-height:24px; font-weight:700; }
+/* 기여 막대 */
+.bars { margin:8px 0; break-inside:avoid; }
+.bar { display:grid; grid-template-columns: 120px 1fr 44px; gap:8px; align-items:center; font-size:9.5pt; padding:3px 0; }
+.bar .tr { position:relative; height:13px; background:#f3f2ef; border-radius:3px; }
+.bar .tr i { position:absolute; left:0; top:0; bottom:0; background:#e34948; border-radius:0 4px 4px 0; }
+.bar .v { text-align:right; font-weight:700; }
+.toc { columns:2; column-gap:28px; padding-left:18px; }
+.toc li { margin:3px 0; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+</style></head><body>
+
+<!-- ===================== 표지 ===================== -->
+<section class="cover">
+ <div>
+  <span class="tag">상품 설명회 자료</span>
+  <h1>굿즈 트렌드</h1>
+  <div class="sub">웹에서 데이터를 모아 “요즘 뜨는 굿즈”를 매일 점수로 알려주는 서비스<br>— 구조, 점수 매기는 방식, 새 아이템 발견 원리 상세 설명서 —</div>
+  <div class="kpis">
+   <div class="kpi"><div class="v">매일 자동</div><div class="k">사람이 손대지 않아도 하루 한 번 수집·분석</div></div>
+   <div class="kpi"><div class="v">0 ~ 100점</div><div class="k">‘핫지수’ 하나로 요약. 50점 = 평소 수준</div></div>
+   <div class="kpi"><div class="v">왜 핫한지</div><div class="k">점수마다 근거(신호별 기여 점수)를 함께 제시</div></div>
+  </div>
+  <h3 style="margin-top:30px">목차</h3>
+  <ol class="toc">
+   <li>한 장 요약</li><li>어떤 문제를 푸는가</li><li>전체 구조 (4개의 부품)</li><li>하루의 작동 순서</li>
+   <li>굿즈 종류 분류 방법</li><li>7가지 신호 — 무엇을 재는가</li><li>점수 계산 — 수식과 이유</li><li>실제 계산 따라가기</li>
+   <li>새 아이템이 떠오를 때</li><li>화면 읽는 법</li><li>운영·보안·비용</li><li>한계와 앞으로의 계획</li>
+  </ol>
+ </div>
+ <div class="muted small">문서 기준일 2026-11-19 · 시스템 버전: GitHub minjun000220/Goods (main) · 예시 숫자는 실제 프로그램으로 계산한 값이며, ‘설명용’ 표시가 있는 숫자는 이해를 돕기 위한 가상의 값입니다.</div>
+</section>
+
+<!-- ===================== 1. 한 장 요약 ===================== -->
+<section class="chapter">
+<h2><span class="no">1</span>한 장 요약</h2>
+<p class="lead">굿즈 트렌드는 <b>쇼핑몰·리셀 마켓·커뮤니티</b>를 매일 둘러보고, 굿즈 <b>종류</b>(응원봉, 인형, 키링 …)별로 “지금 평소보다 얼마나 뜨고 있는가”를 <b>핫지수 0~100점</b>으로 보여주는 서비스입니다.</p>
+<div class="box">
+<table>
+<tr><th style="width:24%">질문</th><th>답</th></tr>
+<tr><td>무엇을 알려주나?</td><td>요즘 뜨는 <b>굿즈 종류</b>의 순위와 점수, 그리고 그 이유. (BTS 응원봉·aespa 응원봉 → 모두 ‘응원봉’ 하나로 집계)</td></tr>
+<tr><td>어디서 정보를 모으나?</td><td>애니메이트(판매인기순), KREAM(리셀 시세·거래 수), 디시인사이드(굿즈·아이돌 갤러리 17곳). 키를 받으면 쿠팡·유튜브·네이버 쇼핑도 연결 가능</td></tr>
+<tr><td>“핫하다”의 기준은?</td><td><b>많이 팔리는 것</b>이 아니라 <b>평소보다 늘어난 것</b>. 최근 7일을 그 이전 28일과 비교합니다</td></tr>
+<tr><td>점수는 어떻게?</td><td>7가지 신호를 재고 → 다른 종류와 비교해 얼마나 튀는지로 바꾸고 → 중요도를 곱해 더한 뒤 → 0~100점으로 환산</td></tr>
+<tr><td>새로운 굿즈는?</td><td>사전에 없는 단어가 갑자기 많이 나오면 ‘새로 뜨는 단어’로 따로 알려줍니다 (예: 말랑이, 젤리캣)</td></tr>
+<tr><td>언제 갱신되나?</td><td>매일 한국 시간 오전 9시 17분부터 시도해 하루 1번 집계. 약 3분 소요</td></tr>
+<tr><td>어디서 보나?</td><td>웹 주소 하나로 폰·컴퓨터 모두. 폰에서는 ‘홈 화면에 추가’로 앱처럼 사용</td></tr>
+<tr><td>비용은?</td><td>현재 0원 (GitHub·Supabase·Vercel 무료 범위)</td></tr>
+</table>
+</div>
+<div class="easy"><b>한 줄 비유</b> — 매일 아침 시장 조사원이 여러 가게(쇼핑몰)와 동네 수다방(커뮤니티)을 돌아보고, “어제까지 조용하던 인형 코너에 오늘 사람이 몰렸다”는 걸 <b>점수와 근거가 적힌 보고서</b>로 정리해 주는 것과 같습니다.</div>
+</section>
+
+<!-- ===================== 2. 문제 ===================== -->
+<section class="chapter">
+<h2><span class="no">2</span>어떤 문제를 푸는가</h2>
+<h3>사람이 직접 하면 생기는 문제</h3>
+<table>
+<tr><th style="width:30%">문제</th><th>설명</th><th style="width:30%">이 서비스의 해결</th></tr>
+<tr><td>정보가 흩어져 있다</td><td>판매 순위는 쇼핑몰에, 시세는 리셀 마켓에, 반응은 커뮤니티에 있다</td><td>여러 곳을 한 번에 모아 같은 기준으로 비교</td></tr>
+<tr><td>“원래 큰 것”에 가려진다</td><td>응원봉처럼 늘 많이 팔리는 것이 항상 1등 → 새로 뜨는 것이 안 보인다</td><td>절대량이 아닌 <b>변화량</b>으로 점수화</td></tr>
+<tr><td>감으로 판단한다</td><td>“요즘 이게 뜨는 것 같아”는 근거를 대기 어렵다</td><td>점수마다 <b>어떤 신호가 몇 점을 올렸는지</b> 표시</td></tr>
+<tr><td>모르는 것은 못 찾는다</td><td>내가 아는 키워드로만 검색하면 새로운 유행을 놓친다</td><td>베스트 순위를 통째로 보고, 사전에 없는 단어를 따로 감시</td></tr>
+<tr><td>매일 하기 힘들다</td><td>조사는 반복 노동</td><td>매일 자동 실행</td></tr>
+</table>
+<div class="why"><b>왜 ‘종류’ 단위인가?</b> 개별 상품(예: “BTS 응원봉 ver.4”)은 출시·품절에 따라 금방 생겼다 사라져 추세를 보기 어렵습니다. ‘응원봉’, ‘인형’ 같은 종류 단위는 꾸준히 존재하므로 <b>날짜별로 비교가 가능</b>하고, 상품 기획·재고 판단처럼 실제 의사결정에 쓰기 좋습니다. 각 종류 옆에는 요즘 순위가 높은 실제 상품명을 예시로 붙여, 구체적인 상품도 함께 볼 수 있습니다.</div>
+</section>
+
+<!-- ===================== 3. 구조 ===================== -->
+<section class="chapter">
+<h2><span class="no">3</span>전체 구조 — 4개의 부품</h2>
+<p>서비스는 역할이 다른 네 부분으로 나뉩니다. 각 부분은 독립적이라, 하나를 바꿔도 나머지는 그대로 동작합니다.</p>
+<div class="flow">
+ <div class="node"><div class="t">① 웹사이트들</div><div class="d">애니메이트<br>KREAM<br>디시인사이드</div></div>
+ <div class="arrow">→</div>
+ <div class="node hl"><div class="t">② 일꾼<br>GitHub Actions</div><div class="d">매일 아침 깨어나<br>수집 → 분류 → 점수<br>(약 3분 후 사라짐)</div></div>
+ <div class="arrow">→</div>
+ <div class="node hl"><div class="t">③ 창고<br>Supabase</div><div class="d">모든 기록을<br>날짜별로 계속 보관<br>(PostgreSQL DB)</div></div>
+ <div class="arrow">→</div>
+ <div class="node hl"><div class="t">④ 진열대<br>Vercel</div><div class="d">창고에서 꺼내<br>순위·그래프로 보여줌<br>(웹 화면)</div></div>
+ <div class="arrow">→</div>
+ <div class="node"><div class="t">📱💻<br>사용자</div><div class="d">같은 주소로<br>폰·PC 모두</div></div>
+</div>
+<table>
+<tr><th style="width:18%">부품</th><th style="width:22%">비유</th><th>하는 일</th><th style="width:24%">데이터 저장</th></tr>
+<tr><td>GitHub Actions</td><td>매일 출근하는 조사원</td><td>정해진 시간에 실행되어 사이트를 돌고, 모은 정보를 분석한 뒤 창고에 넣고 퇴근</td><td>✕ (실행이 끝나면 컴퓨터째 사라짐)</td></tr>
+<tr><td>Supabase</td><td>장부가 보관된 창고</td><td>상품·가격·순위·글·점수를 날짜별로 쌓아 둠</td><td>✓ <b>유일한 저장소</b></td></tr>
+<tr><td>Vercel</td><td>매장 진열대</td><td>창고의 최신 점수를 읽어 화면으로 보여줌. 데이터 수정은 불가</td><td>✕ (읽기만)</td></tr>
+<tr><td>GitHub 저장소</td><td>업무 매뉴얼</td><td>프로그램 코드 보관. 코드를 고치면 일꾼·진열대가 자동으로 새 매뉴얼을 따름</td><td>✕ (코드만)</td></tr>
+</table>
+<h3>프로그램 내부 구조 (일꾼의 머릿속)</h3>
+<div class="flow">
+ <div class="node"><div class="t">수집 계층</div><div class="d">collectors/<br>사이트별 ‘어댑터’가<br>공통 형식으로 변환</div></div>
+ <div class="arrow">→</div>
+ <div class="node"><div class="t">처리 계층</div><div class="d">processing/<br>정리·굿즈 종류 분류</div></div>
+ <div class="arrow">→</div>
+ <div class="node"><div class="t">저장 계층</div><div class="d">storage/<br>DB 표 6+1개</div></div>
+ <div class="arrow">→</div>
+ <div class="node"><div class="t">분석 계층</div><div class="d">analytics/<br>신호 → 점수 → 핫지수<br>급상승·새 단어</div></div>
+ <div class="arrow">→</div>
+ <div class="node"><div class="t">서빙 계층</div><div class="d">web/ (Vercel)<br>api/·dashboard/ (로컬)</div></div>
+</div>
+<div class="why"><b>왜 이렇게 나눴나?</b> ① 사이트가 바뀌면 그 사이트의 ‘어댑터’ 한 파일만 고치면 됩니다. ② 저장소를 다른 회사로 옮겨도 <b>주소 한 줄</b>만 바꾸면 됩니다(코드 수정 없음). ③ 화면을 앱으로 바꿔도 수집·분석은 그대로 씁니다. 부품끼리 느슨하게 연결해 두면 고장과 변경이 한 곳에 갇힙니다.</div>
+<div class="easy"><b>‘어댑터’란?</b> 나라마다 콘센트 모양이 달라도 어댑터를 끼우면 같은 기기를 쓸 수 있는 것처럼, 사이트마다 생김새가 달라도 어댑터가 “상품명·가격·순위·시각” 같은 <b>공통 형식</b>으로 바꿔 줍니다. 새 사이트를 추가할 때는 어댑터만 하나 더 만들면 됩니다. 셀렉터를 정하기 어려운 쇼핑몰은 ‘자동 패턴 찾기’(가격이 붙어 반복되는 칸을 스스로 찾는 기능)로 주소만 넣고 추가할 수도 있습니다.</div>
+</section>
+
+<!-- ===================== 4. 하루 순서 ===================== -->
+<section class="chapter">
+<h2><span class="no">4</span>하루의 작동 순서</h2>
+<ol class="steps">
+<li><b>깨어나기 (09:17~)</b> — GitHub 예약 실행은 몇 시간씩 늦거나 빠질 수 있어, 한국 시간 09:17부터 23:17까지 2시간마다 시도합니다. 그날 처음 도착한 실행만 일하고, 나머지는 “오늘 이미 했음”을 확인하고 30초 안에 끝납니다.</li>
+<li><b>수집 (약 2분)</b> — 사이트를 돌며 정보를 가져옵니다. 사이트에 부담을 주지 않도록 요청 간격을 둡니다(애니메이트 10초, KREAM 5초, 디시 약 3초에 1번). robots.txt(사이트가 정한 수집 허용 규칙)가 금지한 곳은 가져오지 않습니다.</li>
+<li><b>분류</b> — 상품명·글 제목에서 굿즈 종류를 찾습니다 (5장).</li>
+<li><b>저장</b> — 창고(Supabase)에 묶음으로 저장합니다. 상품 수백 개를 60번 정도의 요청으로 저장해 빠릅니다.</li>
+<li><b>점수 계산 (약 10초)</b> — 7가지 신호 → 핫지수 (6~8장).</li>
+<li><b>새 아이템 감시</b> — 급상승 종류와 새로 뜨는 단어를 찾아 저장합니다 (9장).</li>
+<li><b>상태 점검</b> — 어떤 사이트에서 수집량이 평소의 30% 아래로 떨어졌는지 확인합니다(사이트 구조가 바뀌었을 가능성).</li>
+<li><b>화면 반영</b> — 웹 화면은 열 때마다 창고의 최신 결과를 읽으므로, 집계가 끝나는 즉시 새 순위가 보입니다.</li>
+</ol>
+<h3>수집 소스와 역할</h3>
+<table>
+<tr><th>소스</th><th>무엇을 가져오나</th><th>어떤 신호에 쓰이나</th><th>상태</th></tr>
+<tr><td>애니메이트</td><td>신상품·예약상품 ‘판매인기순’ 목록 (순위, 가격)</td><td>베스트 순위 점유율</td><td>동작 중</td></tr>
+<tr><td>KREAM</td><td>굿즈 종류별 검색 결과 (리셀 가격, 누적 거래 수, 리뷰 수). ‘컬렉터블+키링’ 카테고리만</td><td>리셀 거래 속도, 리셀 매물</td><td>동작 중</td></tr>
+<tr><td>디시인사이드</td><td>굿즈 갤러리 전체 글 + 아이돌 갤러리 16곳 중 굿즈가 언급된 글 (제목, 시각, 추천+댓글 수)</td><td>커뮤니티 언급량, 새 단어</td><td>동작 중</td></tr>
+<tr><td>쿠팡 / 유튜브 / 네이버 쇼핑</td><td>베스트 상품 / 언박싱 영상 / 판매처 수</td><td>베스트 점유율 / 언급량 / 판매처 증가</td><td>코드 준비, 키 발급 시 켬</td></tr>
+<tr><td>중고나라 · 더쿠 · 번개장터 · 구글 트렌드</td><td colspan="2">사이트가 봇 접근을 차단하거나(방화벽·보안 검사), 공개 API가 없거나, robots.txt가 금지하여 제외. 차단을 우회하지 않습니다.</td><td>제외</td></tr>
+</table>
+</section>
+
+<!-- ===================== 5. 분류 ===================== -->
+<section class="chapter">
+<h2><span class="no">5</span>굿즈 종류 분류 방법</h2>
+<p>모든 상품명과 글 제목은 먼저 “어떤 굿즈 종류인가”로 분류됩니다. 분류는 <b>사전(별칭 목록)</b>으로 합니다.</p>
+<table>
+<tr><th style="width:22%">원래 문장</th><th style="width:28%">정리 후</th><th>찾은 별칭 → 종류</th></tr>
+<tr><td>[공식] BTS 응원봉 ver.4 ★당일발송★</td><td>bts 응원봉 ver.4</td><td>‘응원봉’ → <b>응원봉</b></td></tr>
+<tr><td>세븐틴 캐럿봉 ver.3</td><td>세븐틴 캐럿봉 ver.3</td><td>‘캐럿봉’ → <b>응원봉</b></td></tr>
+<tr><td>먼작귀 하치와레 누이 M</td><td>먼작귀 하치와레 누이 m</td><td>‘누이’ → <b>인형</b></td></tr>
+<tr><td>세븐틴 2027 시즌 그리팅</td><td>세븐틴 2027 시즌 그리팅</td><td>띄어쓰기 무시 비교 → <b>시즌그리팅</b></td></tr>
+<tr><td>치이카와 말랑이 스퀴시</td><td>치이카와 말랑이 스퀴시</td><td>없음 → <b>미분류</b> (새 단어 감시로 넘어감)</td></tr>
+</table>
+<h3>규칙</h3>
+<ol>
+<li><b>정리:</b> 판매 문구([무료배송], ★당일발송★), 기호, 대소문자 차이를 없앱니다.</li>
+<li><b>긴 별칭 우선:</b> “봉제인형”이 “인형”보다 먼저, “캔뱃지”가 “뱃지”보다 먼저 비교됩니다.</li>
+<li><b>영어는 단어 단위:</b> ‘album’이 ‘albumin’(영양제) 안에서 잘못 잡히지 않게 합니다.</li>
+<li><b>띄어쓰기 무시:</b> 위에서 못 찾으면 공백을 지우고 다시 비교합니다(3글자 이상 한글 별칭만).</li>
+</ol>
+<div class="why"><b>왜 AI 대신 사전인가?</b> ① <b>투명함</b> — 왜 그 종류로 분류됐는지 누구나 사전에서 확인할 수 있습니다. ② <b>비용 0원·빠름</b> — 하루 수천 건도 1초 안에 처리합니다. ③ <b>안정성</b> — 같은 입력에 늘 같은 결과가 나와 날짜별 비교가 흔들리지 않습니다. 대신 사전에 없는 새 종류는 못 잡으므로, 9장의 ‘새 단어 감시’로 보완하고 사람이 확인해 사전에 추가합니다.</div>
+<p class="muted small">현재 등록된 종류(23개): 응원봉, 포토카드, 아크릴스탠드, 키링, 인형, 피규어, 앨범, 포스터, 슬로건, 뱃지, 스티커, 폰케이스, 티셔츠, 에코백, 머그컵, 포토북, 시즌그리팅, 쿠션, 클리어파일, 문구, 액세서리, 장식품, 만화책 — 각 종류마다 여러 별칭(예: 인형 = 봉제인형·누이·플러시·마스코트)이 있습니다.</p>
+</section>
+
+<!-- ===================== 6. 신호 ===================== -->
+<section class="chapter">
+<h2><span class="no">6</span>7가지 신호 — 무엇을 재는가</h2>
+<p>‘핫하다’는 하나의 숫자로 잴 수 없습니다. 그래서 서로 다른 각도에서 7가지를 잽니다. 모든 신호의 공통 원칙은 하나입니다.</p>
+<div class="formula"><span class="c">원칙:</span> 얼마나 많은가(절대량)가 아니라, <b>최근 7일이 그 이전 28일보다 얼마나 늘었나(변화량)</b>를 잰다.</div>
+<div class="why"><b>왜 변화량인가?</b> 절대량으로 재면 원래 시장이 큰 응원봉이 매일 1등이고, 막 뜨기 시작한 종류는 묻힙니다. 우리가 알고 싶은 건 “지금 <b>평소보다</b> 뜨고 있는 것”입니다. <b>왜 7일 대 28일인가?</b> 7일은 요일 효과(주말에 글이 많음)를 평균내기 위한 최소 단위이고, 28일(4주)은 ‘평소’를 안정적으로 정의할 만큼 길면서 계절 변화를 너무 늦게 따라가지 않는 길이입니다.</div>
+<h3>변화율을 재는 공통 공식</h3>
+<div class="formula">변화율 = ln( (최근 7일 하루 평균 + ε) ÷ (이전 28일 하루 평균 + ε) )<br>
+<span class="c">ln = 자연로그, ε(엡실론) = 1 (점유율은 0.02)</span></div>
+<p><b>왜 나누기에 ln(로그)을 씌우나?</b> 그냥 나누면 2배 증가는 2, 절반 감소는 0.5로 <b>증가와 감소가 비대칭</b>입니다. 로그를 씌우면 2배 = +0.69, 절반 = −0.69로 대칭이 되고, 0은 ‘변화 없음’이 됩니다. 또 10배·100배 같은 극단값이 점수를 독차지하지 않게 눌러 줍니다.<br>
+<b>왜 ε를 더하나?</b> 평소 0건이던 것이 1건이 되면 나누기가 무한대가 됩니다. 작은 수 ε를 양쪽에 더해 “0 → 1건”같은 작은 변화가 과장되지 않게 합니다.</p>
+<table>
+<tr><th style="width:4%">#</th><th style="width:17%">신호</th><th>재는 것과 계산</th><th style="width:22%">의미 / 출처</th><th class="num" style="width:8%">중요도</th></tr>
+<tr><td>1</td><td><b>베스트 순위 점유율</b></td><td>판매인기 상위 20칸 중 이 종류가 차지한 비율의 변화율. 하루 여러 번 수집하면 회차 평균</td><td>실제로 <b>팔린다</b> / 애니메이트·쿠팡</td><td class="num">1.5</td></tr>
+<tr><td>2</td><td><b>커뮤니티 언급량</b></td><td>굿즈 언급 글 수의 변화율. 글마다 가중치 1 + ln(1+추천·댓글)/3 — 반응 많은 글은 최대 몇 배까지만 더 셈</td><td>사람들이 <b>이야기</b>하기 시작 (판매보다 먼저 반응) / 디시·유튜브</td><td class="num">1.2</td></tr>
+<tr><td>3</td><td><b>리셀 거래 속도</b></td><td>KREAM 누적 거래 수의 하루 증가량 → 최근 7일 vs 이전 기간 변화율</td><td><b>웃돈 주고도 산다</b> / KREAM</td><td class="num">1.2</td></tr>
+<tr><td>4</td><td><b>품절 비율</b></td><td>최근 3일 정가 판매 상품 중 품절 비율 (0~1). 변화율이 아닌 현재 상태</td><td>공급이 <b>수요를 못 따라감</b> / 품절 표시가 있는 쇼핑몰</td><td class="num">1.2</td></tr>
+<tr><td>5</td><td><b>리셀 매물</b></td><td>새로 보이기 시작한 리셀 상품 수의 변화율</td><td>되팔 만큼 수요가 있다 / KREAM</td><td class="num">1.0</td></tr>
+<tr><td>6</td><td><b>리뷰 증가</b></td><td>정가 판매처 누적 리뷰 수의 하루 증가량 변화율</td><td>실제 구매가 늘었다 / 리뷰 수가 있는 쇼핑몰</td><td class="num">0.8</td></tr>
+<tr><td>7</td><td><b>판매처 증가</b></td><td>검색 결과 상품 수의 변화율</td><td>파는 곳이 늘었다 (늦게 따라옴) / 네이버 쇼핑</td><td class="num">0.5</td></tr>
+</table>
+<div class="why"><b>중요도(가중치)를 이렇게 정한 이유</b> — <b>실제 지갑이 열렸다</b>는 직접 증거(베스트 점유율 1.5)를 가장 높게, <b>웃돈·품절·말</b>처럼 수요가 공급을 앞선다는 증거(1.2)를 다음으로, 간접 증거(리셀 매물 1.0, 리뷰 0.8)를 그다음, <b>판매자가 뒤따라 늘리는</b> 늦은 신호(판매처 0.5)를 가장 낮게 두었습니다. 이 값은 상식에 기반해 정한 <b>초기값</b>이며, 데이터가 몇 달 쌓이면 “실제로 유행한 종류를 가장 잘 맞힌 가중치”로 다시 맞출 계획입니다(12장).</div>
+<p class="muted small">현재 실제로 데이터가 들어오는 신호: 1·2·3·5 (애니메이트·KREAM·디시). 4·6·7은 해당 정보를 주는 소스(품절 표시·리뷰 수가 있는 쇼핑몰, 네이버 쇼핑)를 연결하면 자동으로 채워집니다.</p>
+</section>
+
+<!-- ===================== 7. 점수 계산 ===================== -->
+<section class="chapter">
+<h2><span class="no">7</span>점수 계산 — 수식과 이유</h2>
+<p>7가지 신호는 단위가 제각각입니다(비율, 로그 변화율, 0~1). 이걸 하나의 점수로 합치려면 <b>같은 잣대</b>로 바꿔야 합니다. 3단계로 계산합니다.</p>
+
+<h3>1단계 · 표준화: “다른 종류들보다 얼마나 튀나?”</h3>
+<div class="formula">z = (내 값 − 중앙값) ÷ (1.4826 × MAD)<br>
+<span class="c">중앙값 = 모든 굿즈 종류의 값을 줄 세웠을 때 가운데 값</span><br>
+<span class="c">MAD = 각 값이 중앙값에서 떨어진 거리들의 중앙값 (‘보통 얼마나 흩어져 있나’)</span><br>
+<span class="c">z 는 −4 ~ +4 로 자릅니다</span></div>
+<div class="easy"><b>쉽게 말하면</b> — 반 학생들 키를 볼 때 “175cm”보다 “반 평균보다 표준적인 차이의 2배만큼 크다”가 더 많은 걸 알려줍니다. z는 “이 신호에서 이 종류가 <b>보통의 차이 몇 개만큼</b> 튀는가”입니다. z = 0이면 보통, +2면 꽤 높음, −2면 꽤 낮음.</div>
+<div class="why"><b>왜 평균·표준편차가 아니라 중앙값·MAD인가?</b> 평균은 극단값 하나에 끌려갑니다. 예를 들어 한 종류만 언급이 50배 폭증하면 평균과 표준편차가 커져서 <b>나머지 모두가 0 근처로 뭉개집니다</b>. 중앙값과 MAD는 극단값의 영향을 거의 받지 않아(‘robust z-score’), 폭증한 종류는 확실히 높게, 나머지는 서로 구별되게 남습니다. 1.4826은 데이터가 정규분포일 때 MAD를 표준편차와 같은 크기로 맞춰 주는 상수입니다. <b>±4로 자르는 이유</b>는 신호 하나가 혼자 점수 전체를 결정하지 못하게 하기 위해서입니다.</div>
+
+<h3>2단계 · 가중 평균: 종합 점수</h3>
+<div class="formula">종합 점수 = Σ (중요도ᵢ × zᵢ) ÷ Σ 중요도ᵢ<br>
+<span class="c">Σ 중요도 = 1.5+1.2+1.2+1.2+1.0+0.8+0.5 = 7.4 (항상 7개 전체로 나눔)</span><br>
+<span class="c">데이터가 없는 신호는 z = 0(중립)으로 취급</span></div>
+<div class="why"><b>왜 없는 신호를 0으로 두고 7.4 전체로 나누나?</b> 근거가 적은 종류가 신호 1~2개만으로 극단적인 점수를 받지 않게 하려는 장치입니다. “증거가 부족하면 평범한 쪽(0)으로 본다”는 보수적 원칙이죠. 대신 화면에 <b>근거 수(coverage)</b>를 함께 표시해 몇 개의 신호로 낸 점수인지 알 수 있게 합니다.</div>
+
+<h3>3단계 · 핫지수: 0~100점으로 환산</h3>
+<div class="formula">핫지수 = 100 ÷ (1 + e<sup>−1.5 × 종합 점수</sup>)<br>
+<span class="c">e ≈ 2.718. 종합 점수 0 → 50점, +1 → 82점, −1 → 18점</span></div>
+<div class="box" style="padding:8px 12px"><svg viewBox="0 0 520 250" width="100%" class="chart"><line x1="46" x2="500" y1="214.0" y2="214.0" stroke="#e6e5e1"/><text x="38" y="218.0" text-anchor="end">0</text><line x1="46" x2="500" y1="115.0" y2="115.0" stroke="#e6e5e1"/><text x="38" y="119.0" text-anchor="end">50</text><line x1="46" x2="500" y1="16.0" y2="16.0" stroke="#e6e5e1"/><text x="38" y="20.0" text-anchor="end">100</text><line x1="46" x2="500" y1="45.7" y2="45.7" stroke="#bdbcb7" stroke-dasharray="4 4"/><text x="52" y="41.7" text-anchor="start">85 급상승</text><line x1="46" x2="500" y1="75.4" y2="75.4" stroke="#bdbcb7" stroke-dasharray="4 4"/><text x="52" y="71.4" text-anchor="start">70 상승</text><text x="46.0" y="236" text-anchor="middle">-3</text><text x="121.7" y="236" text-anchor="middle">-2</text><text x="197.3" y="236" text-anchor="middle">-1</text><text x="273.0" y="236" text-anchor="middle">+0</text><text x="348.7" y="236" text-anchor="middle">+1</text><text x="424.3" y="236" text-anchor="middle">+2</text><text x="500.0" y="236" text-anchor="middle">+3</text>
+<polyline points="46.0,211.8 49.8,211.7 53.6,211.5 57.3,211.3 61.1,211.1 64.9,210.9 68.7,210.6 72.5,210.4 76.3,210.1 80.1,209.8 83.8,209.5 87.6,209.1 91.4,208.7 95.2,208.3 99.0,207.9 102.8,207.4 106.5,207.0 110.3,206.4 114.1,205.9 117.9,205.3 121.7,204.6 125.5,203.9 129.2,203.2 133.0,202.4 136.8,201.5 140.6,200.6 144.4,199.7 148.2,198.6 151.9,197.5 155.7,196.4 159.5,195.1 163.3,193.8 167.1,192.4 170.8,190.9 174.6,189.3 178.4,187.7 182.2,185.9 186.0,184.1 189.8,182.1 193.6,180.0 197.3,177.9 201.1,175.6 204.9,173.2 208.7,170.8 212.5,168.2 216.2,165.5 220.0,162.7 223.8,159.8 227.6,156.8 231.4,153.7 235.2,150.5 238.9,147.2 242.7,143.8 246.5,140.4 250.3,136.9 254.1,133.3 257.9,129.7 261.6,126.1 265.4,122.4 269.2,118.7 273.0,115.0 276.8,111.3 280.6,107.6 284.4,103.9 288.1,100.3 291.9,96.7 295.7,93.1 299.5,89.6 303.3,86.2 307.1,82.8 310.8,79.5 314.6,76.3 318.4,73.2 322.2,70.2 326.0,67.3 329.8,64.5 333.5,61.8 337.3,59.2 341.1,56.8 344.9,54.4 348.7,52.1 352.4,50.0 356.2,47.9 360.0,45.9 363.8,44.1 367.6,42.3 371.4,40.7 375.1,39.1 378.9,37.6 382.7,36.2 386.5,34.9 390.3,33.6 394.1,32.5 397.9,31.4 401.6,30.3 405.4,29.4 409.2,28.5 413.0,27.6 416.8,26.8 420.6,26.1 424.3,25.4 428.1,24.7 431.9,24.1 435.7,23.6 439.5,23.0 443.2,22.6 447.0,22.1 450.8,21.7 454.6,21.3 458.4,20.9 462.2,20.5 465.9,20.2 469.7,19.9 473.5,19.6 477.3,19.4 481.1,19.1 484.9,18.9 488.6,18.7 492.4,18.5 496.2,18.3 500.0,18.2" fill="none" stroke="#2a78d6" stroke-width="2.4"/><circle cx="273.0" cy="115.0" r="4.5" fill="#2a78d6" stroke="#fff" stroke-width="2"/><text x="281.0" y="129.0" style="fill:#0b0b0b;font-weight:700">점수 0 → 50</text><circle cx="348.7" cy="52.1" r="4.5" fill="#2a78d6" stroke="#fff" stroke-width="2"/><text x="356.7" y="66.1" style="fill:#0b0b0b;font-weight:700">점수 1.0 → 82</text><circle cx="439.5" cy="23.0" r="4.5" fill="#2a78d6" stroke="#fff" stroke-width="2"/><text x="433.5" y="17.0" text-anchor="end" style="fill:#0b0b0b;font-weight:700">인형 2.2 → 96</text>
+<text x="273.0" y="249" text-anchor="middle">종합 점수 (평소 = 0)</text></svg>
+<p class="muted small" style="margin:2px 0 0">그림 1. 종합 점수(가로)와 핫지수(세로)의 관계. 가운데는 민감하게, 양 끝은 완만하게 바뀌는 S자 곡선입니다.</p></div>
+<div class="why"><b>왜 S자 곡선(로지스틱 함수)인가?</b> ① 어떤 점수가 들어와도 결과가 반드시 0~100 사이에 들어옵니다. ② ‘평소’(0)가 정확히 50점이 되어 직관적입니다. ③ 평범한 구간에서는 작은 차이도 잘 드러나고, 이미 아주 높은 구간에서는 더 올라도 점수가 조금씩만 늘어 “100점 넘는 이상한 숫자”가 생기지 않습니다. 1.5는 곡선의 기울기로, 종합 점수 ±1(보통의 1배 차이)이 대략 82점/18점이 되도록 정했습니다.</div>
+<table>
+<tr><th>핫지수</th><th>표시</th><th>뜻</th></tr>
+<tr><td>85 ~ 100</td><td>🔥 급상승</td><td>평소보다 확실히 뜨고 있음 (종합 점수 약 +1.15 이상)</td></tr>
+<tr><td>70 ~ 84</td><td>📈 상승</td><td>뜨는 중 (약 +0.56 이상)</td></tr>
+<tr><td>31 ~ 69</td><td>➖ 보합</td><td>평소 수준</td></tr>
+<tr><td>16 ~ 30</td><td>📉 하락</td><td>식는 중</td></tr>
+<tr><td>0 ~ 15</td><td>🧊 급하락</td><td>확실히 식고 있음</td></tr>
+</table>
+
+<h3>덤 · “왜 이 점수인가” (기여 점수)</h3>
+<div class="formula">신호 i 의 기여 점수 = (중요도ᵢ × zᵢ ÷ 7.4) ÷ 종합 점수 × (핫지수 − 50)<br>
+<span class="c">모두 더하면 정확히 ‘핫지수 − 50’ (반올림 오차 ±1)</span></div>
+<p>핫지수가 50점에서 얼마나 벗어났는지를, 각 신호가 종합 점수에 보탠 비율대로 나눠 가진 것입니다. 그래서 “인형 96점 = 50 + 품절 12.6 + 언급량 11.0 + …”처럼 <b>점수를 근거별로 분해</b>해 보여줄 수 있습니다.</p>
+</section>
+
+<!-- ===================== 8. 실제 계산 ===================== -->
+<section class="chapter">
+<h2><span class="no">8</span>실제 계산 따라가기 — ‘인형’이 96점이 되기까지</h2>
+<p class="muted small">아래 숫자는 프로그램의 데모 데이터(인형이 막판에 급증하는 35일치 시나리오)로 실제 계산한 값입니다.</p>
+<h3>① 커뮤니티 언급량 신호 하나만 따라가 보기</h3>
+<div class="box">
+<p><b>변화율</b> — 프로그램이 계산한 인형의 언급량 변화율은 <b>1.588</b>입니다. (설명용 예: 이전 28일 하루 평균 3건, 최근 7일 하루 평균 18.6건이면 ln(19.6 ÷ 4) = 1.59)</p>
+<p><b>다른 종류들과 비교</b> — 5개 종류의 언급량 변화율: 인형 1.588, 포토카드 0.298, 피규어 0.228, 응원봉 −0.056, 키링 −0.338</p>
+<div class="formula">중앙값 = 0.228 (가운데 값)<br>
+MAD = 0.284 → 보통의 차이 = 1.4826 × 0.284 = 0.421<br>
+z = (1.588 − 0.228) ÷ 0.421 = <b>3.23</b>   <span class="c">← “보통 차이의 3.2배만큼 튄다”</span></div>
+</div>
+<h3>② 6개 신호를 모두 합치기</h3>
+<table>
+<tr><th>신호</th><th class="num">변화율/값</th><th class="num">z</th><th class="num">중요도</th><th class="num">중요도×z</th></tr>
+<tr><td>베스트 순위 점유율</td><td class="num">0.739</td><td class="num">0.67</td><td class="num">1.5</td><td class="num">1.01</td></tr>
+<tr><td>커뮤니티 언급량</td><td class="num">1.588</td><td class="num">3.23</td><td class="num">1.2</td><td class="num">3.88</td></tr>
+<tr><td>품절 비율</td><td class="num">0.933</td><td class="num">3.71</td><td class="num">1.2</td><td class="num">4.45</td></tr>
+<tr><td>리셀 매물</td><td class="num">1.108</td><td class="num">3.12</td><td class="num">1.0</td><td class="num">3.12</td></tr>
+<tr><td>리뷰 증가</td><td class="num">1.472</td><td class="num">2.75</td><td class="num">0.8</td><td class="num">2.20</td></tr>
+<tr><td>판매처 증가</td><td class="num">0.310</td><td class="num">3.19</td><td class="num">0.5</td><td class="num">1.60</td></tr>
+<tr><td>리셀 거래 속도</td><td class="num">(데모에 없음)</td><td class="num">0</td><td class="num">1.2</td><td class="num">0</td></tr>
+<tr><th>합계</th><th></th><th></th><th class="num">7.4</th><th class="num">16.25</th></tr>
+</table>
+<div class="formula">종합 점수 = 16.25 ÷ 7.4 = <b>2.20</b><br>
+핫지수 = 100 ÷ (1 + e<sup>−1.5×2.20</sup>) = 100 ÷ (1 + 0.037) = <b>96점 🔥 급상승</b></div>
+<div style="break-inside:avoid"><h3>③ 96점의 근거 (기여 점수, 합계 = 96 − 50 = 46)</h3>
+<div class="bars">
+ <div class="bar"><span>품절 비율</span><span class="tr"><i style="width:100%"></i></span><span class="v">+12.6</span></div>
+ <div class="bar"><span>커뮤니티 언급량</span><span class="tr"><i style="width:87%"></i></span><span class="v">+11.0</span></div>
+ <div class="bar"><span>리셀 매물</span><span class="tr"><i style="width:70%"></i></span><span class="v">+8.8</span></div>
+ <div class="bar"><span>리뷰 증가</span><span class="tr"><i style="width:49%"></i></span><span class="v">+6.2</span></div>
+ <div class="bar"><span>판매처 증가</span><span class="tr"><i style="width:36%"></i></span><span class="v">+4.5</span></div>
+ <div class="bar"><span>베스트 순위 점유율</span><span class="tr"><i style="width:23%"></i></span><span class="v">+2.9</span></div>
+</div></div>
+<p>같은 방식으로 계산한 다른 종류: 피규어 58점(보합), 응원봉 46점(보합 — <b>늘 많이 팔리지만 변화가 없어서</b> 1등이 아님), 포토카드 31점, 키링 14점(🧊 급하락 — 식는 중). <b>“원래 큰 것”이 아니라 “지금 뜨는 것”이 위로 올라오는</b> 설계가 의도대로 작동함을 보여줍니다.</p>
+</section>
+
+<!-- ===================== 9. 새 아이템 ===================== -->
+<section class="chapter">
+<h2><span class="no">9</span>새 아이템이 떠오를 때</h2>
+<p>순위(6~8장)는 <b>이미 아는 종류</b>끼리의 비교입니다. 새로운 유행을 놓치지 않으려고 두 개의 감시 장치를 따로 둡니다.</p>
+
+<h3>감시 ① 언급량 급상승 — “평소와 다른 날” 알림</h3>
+<div class="formula">최근 = 최근 3일 하루 평균 언급 수<br>
+평소 = 7일 전 ~ 35일 전 하루 평균 (μ), 흩어짐 = 표준편차 (σ)<br>
+z = (최근 − μ) ÷ ( max(σ, √μ, 1) ÷ √3 )<br>
+<span class="c">조건: z ≥ 3 그리고 최근 하루 평균 ≥ 3건 → ‘급상승’</span></div>
+<div class="box" style="padding:8px 12px"><svg viewBox="0 0 520 200" width="100%" class="chart"><rect x="31.0" y="140.0" width="12.1" height="30.0" rx="2" fill="#9ec5f4"/><rect x="45.1" y="150.0" width="12.1" height="20.0" rx="2" fill="#9ec5f4"/><rect x="59.2" y="130.0" width="12.1" height="40.0" rx="2" fill="#9ec5f4"/><rect x="73.4" y="140.0" width="12.1" height="30.0" rx="2" fill="#9ec5f4"/><rect x="87.5" y="150.0" width="12.1" height="20.0" rx="2" fill="#9ec5f4"/><rect x="101.6" y="140.0" width="12.1" height="30.0" rx="2" fill="#9ec5f4"/><rect x="115.7" y="130.0" width="12.1" height="40.0" rx="2" fill="#9ec5f4"/><rect x="129.8" y="150.0" width="12.1" height="20.0" rx="2" fill="#9ec5f4"/><rect x="143.9" y="140.0" width="12.1" height="30.0" rx="2" fill="#9ec5f4"/><rect x="158.1" y="140.0" width="12.1" height="30.0" rx="2" fill="#9ec5f4"/><rect x="172.2" y="150.0" width="12.1" height="20.0" rx="2" fill="#9ec5f4"/><rect x="186.3" y="130.0" width="12.1" height="40.0" rx="2" fill="#9ec5f4"/><rect x="200.4" y="140.0" width="12.1" height="30.0" rx="2" fill="#9ec5f4"/><rect x="214.5" y="140.0" width="12.1" height="30.0" rx="2" fill="#9ec5f4"/><rect x="228.6" y="150.0" width="12.1" height="20.0" rx="2" fill="#9ec5f4"/><rect x="242.8" y="140.0" width="12.1" height="30.0" rx="2" fill="#9ec5f4"/><rect x="256.9" y="130.0" width="12.1" height="40.0" rx="2" fill="#9ec5f4"/><rect x="271.0" y="140.0" width="12.1" height="30.0" rx="2" fill="#9ec5f4"/><rect x="285.1" y="150.0" width="12.1" height="20.0" rx="2" fill="#9ec5f4"/><rect x="299.2" y="140.0" width="12.1" height="30.0" rx="2" fill="#9ec5f4"/><rect x="313.4" y="140.0" width="12.1" height="30.0" rx="2" fill="#9ec5f4"/><rect x="327.5" y="130.0" width="12.1" height="40.0" rx="2" fill="#9ec5f4"/><rect x="341.6" y="140.0" width="12.1" height="30.0" rx="2" fill="#9ec5f4"/><rect x="355.7" y="150.0" width="12.1" height="20.0" rx="2" fill="#9ec5f4"/><rect x="369.8" y="140.0" width="12.1" height="30.0" rx="2" fill="#9ec5f4"/><rect x="383.9" y="130.0" width="12.1" height="40.0" rx="2" fill="#9ec5f4"/><rect x="398.1" y="120.0" width="12.1" height="50.0" rx="2" fill="#9ec5f4"/><rect x="412.2" y="130.0" width="12.1" height="40.0" rx="2" fill="#d6d5d0"/><rect x="426.3" y="110.0" width="12.1" height="60.0" rx="2" fill="#d6d5d0"/><rect x="440.4" y="90.0" width="12.1" height="80.0" rx="2" fill="#d6d5d0"/><rect x="454.5" y="70.0" width="12.1" height="100.0" rx="2" fill="#d6d5d0"/><rect x="468.6" y="40.0" width="12.1" height="130.0" rx="2" fill="#e34948"/><rect x="482.8" y="20.0" width="12.1" height="150.0" rx="2" fill="#e34948"/><rect x="496.9" y="50.0" width="12.1" height="120.0" rx="2" fill="#e34948"/><line x1="30" x2="510" y1="139.6" y2="139.6" stroke="#52514e" stroke-dasharray="4 3"/><text x="34" y="134.6" style="fill:#52514e">평소 평균 3.0건/일</text><text x="24" y="174.0" text-anchor="end">0</text><text x="24" y="94.0" text-anchor="end">8</text><text x="24" y="14.0" text-anchor="end">16</text><text x="30" y="190">35일 전</text><text x="510" y="190" text-anchor="end">오늘</text></svg>
+<p class="muted small" style="margin:2px 0 0">그림 2 (설명용 숫자). 파란 막대 = ‘평소’ 기간, 회색 = 비교에서 빼는 완충 기간(최근 4~7일 전), 빨강 = ‘최근 3일’. 평소 평균 3.0건/일 → 최근 3일 평균 13.3건/일, z ≈ 10 → 급상승.</p></div>
+<div class="why"><b>설계 이유</b><br>
+• <b>왜 3일?</b> 하루치만 보면 우연히 튄 날과 구별이 어렵고, 며칠에 걸쳐 오르는 상승도 놓칩니다. 3일 평균은 우연을 줄이면서 빠르게 반응합니다.<br>
+• <b>왜 최근 4~7일 전은 빼나?</b> 상승 초반이 ‘평소’에 섞이면 평소 기준이 같이 올라가 급상승이 덜 튀어 보입니다. 완충 기간을 두어 이를 막습니다.<br>
+• <b>왜 √μ와 1을 바닥으로?</b> 글 수처럼 ‘세는’ 데이터는 원래 평균의 제곱근만큼 자연스럽게 흔들립니다(포아송 분포의 성질). 하루 0~1건인 조용한 종류가 2건이 됐다고 경보가 울리지 않게 최소한의 흔들림을 보장합니다.<br>
+• <b>왜 ÷√3?</b> 3일을 평균내면 우연한 흔들림이 √3배 줄어듭니다. 그만큼 기준을 정밀하게 잡습니다.<br>
+• <b>왜 z ≥ 3?</b> 평소라면 우연히 이 정도로 튈 확률이 매우 낮은(약 0.1%) 수준이라, 경보가 남발되지 않습니다.</div>
+
+<div style="break-inside:avoid"><h3>감시 ② 새로 뜨는 단어 — 사전에 없는 굿즈 찾기</h3>
+<p>종류를 분류하지 못한 상품명·글(5장의 ‘미분류’)에서 명사를 뽑아(한국어 형태소 분석기 Kiwi 사용), 갑자기 많이 나오는 단어를 찾습니다.</p>
+<div class="formula">비율 = (최근 7일 등장 수 ÷ 7 + 0.1) ÷ (이전 28일 등장 수 ÷ 28 + 0.1)<br>
+<span class="c">조건: 최근 7일 5번 이상 등장 그리고 비율 ≥ 4</span><br>
+<span class="c">제외: 이미 사전에 있는 굿즈 별칭, 판매 문구(정품·무료배송…), 색상·크기, 아티스트·캐릭터 이름</span></div></div>
+<div class="box"><b>예 (설명용 숫자):</b> ‘말랑이’가 최근 7일 50번, 이전 28일 10번 등장 → (50÷7 + 0.1) ÷ (10÷28 + 0.1) = 7.24 ÷ 0.46 = <b>15.8배</b> → ‘새로 뜨는 단어’에 표시</div>
+<div class="why"><b>설계 이유</b> — 상품은 한 번만 세고(같은 상품이 매일 보여도 처음 본 날 1번) 글은 등장한 날 셉니다. ‘+0.1’은 평소 0번이던 단어가 1~2번 나왔다고 무한대 비율이 되는 것을 막습니다. ‘5번 이상’은 우연히 한두 번 나온 단어를 거릅니다. 아티스트·캐릭터 이름은 ‘굿즈 종류’가 아니므로 무시 목록으로 뺍니다.</div>
+
+<h3>새 아이템이 정식 순위에 들어가는 과정</h3>
+<ol class="steps">
+<li>‘말랑이’ 같은 단어가 화면의 <b>🆕 새로 뜨는 단어</b>에 나타납니다.</li>
+<li>사람이 확인합니다 — 진짜 굿즈 종류인가? (예: 젤리캣은 인형 브랜드 → ‘인형’의 별칭으로, 레고는 새 종류로)</li>
+<li>사전(<code>processing/dictionaries.py</code>)에 한 줄 추가합니다. 아니면 무시 목록에 넣어 다시 안 뜨게 합니다.</li>
+<li>다음 집계부터 해당 상품·글이 그 종류로 분류되어 <b>7가지 신호와 핫지수 순위</b>에 포함됩니다.</li>
+<li>보관된 과거 기록도 다시 분류되므로(같은 상품이 다시 수집될 때 종류가 갱신됨), 추세가 자연스럽게 이어집니다.</li>
+</ol>
+<div class="why"><b>왜 자동으로 추가하지 않나?</b> ‘요즘’, ‘텔레토비’처럼 굿즈 종류가 아닌 단어도 갑자기 늘 수 있습니다. 잘못 추가되면 순위가 오염되므로, 발견은 기계가 빠르게 하고 <b>확정은 사람이</b> 하도록 나눴습니다(일주일에 5분 정도).</div>
+</section>
+
+<!-- ===================== 10. 화면 ===================== -->
+<section class="chapter">
+<h2><span class="no">10</span>화면 읽는 법</h2>
+<div class="grid2">
+<div class="box"><b>홈 화면</b>
+<ul class="small">
+<li><b>순위·종류·상태</b> — 예: 1 인형 🔥 급상승</li>
+<li><b>핫지수</b>와 막대 — 가운데 눈금이 50(평소)</li>
+<li><b>어제 대비</b> — ▲2위 · +6점 / 처음 등장 시 NEW</li>
+<li><b>한 줄 근거</b> — 가장 크게 영향 준 신호 2개 (예: 품절 비율 +14 · 리뷰 증가 +10)</li>
+<li><b>예)</b> — 요즘 순위가 높은 실제 상품명</li>
+<li>오른쪽(폰에선 아래): 📈 언급량 급상승, 🆕 새로 뜨는 단어</li>
+</ul></div>
+<div class="box"><b>상세 화면</b> (종류를 누르면)
+<ul class="small">
+<li>핫지수 / 순위 / 최근 7일 언급 수 / 근거 신호 수</li>
+<li><b>핫지수 추이 그래프</b> — 날짜별 점수. 점선 50 = 평소. 손가락·마우스를 대면 그날 값 표시, ‘표로 보기’ 제공</li>
+<li><b>왜 이 점수인가</b> — 빨강(올림)·파랑(내림) 막대, 합계 = 핫지수 − 50</li>
+<li><b>요즘 순위가 높은 상품</b> 목록</li>
+</ul></div>
+</div>
+<div class="easy"><b>읽는 요령</b> — ① 핫지수가 높아도 <b>근거 수가 1~2개</b>면 아직 확신하기 이릅니다. ② <b>추이 그래프가 며칠째 오르는지</b>가 하루 점수보다 중요합니다. ③ ‘언급량’만 오르고 ‘베스트 점유율’이 안 오르면 “말은 많은데 아직 안 팔린다” → 곧 팔릴 수도, 반짝일 수도 있습니다.</div>
+<p>화면은 폰·컴퓨터 화면 크기에 맞춰 자동 배치되고, 기기 설정에 따라 다크 모드로도 보입니다. 아이폰은 Safari ‘공유 → 홈 화면에 추가’, 안드로이드는 Chrome ‘⋮ → 홈 화면에 추가’로 앱처럼 쓸 수 있습니다.</p>
+</section>
+
+<!-- ===================== 11. 운영 ===================== -->
+<section class="chapter">
+<h2><span class="no">11</span>운영 · 보안 · 비용</h2>
+<h3>멈추지 않게 하는 장치</h3>
+<table>
+<tr><th style="width:30%">상황</th><th>대응</th></tr>
+<tr><td>GitHub 예약 실행이 늦거나 빠짐</td><td>하루 8번(2시간 간격) 시도, 먼저 도착한 1번만 수집</td></tr>
+<tr><td>사이트가 봇을 막음</td><td>연속 3번 실패하면 그 사이트만 그날 포기, 나머지는 계속</td></tr>
+<tr><td>사이트가 응답 없이 멈춤</td><td>요청당 15초, 사이트당 10분, 수집 단계 25분 제한</td></tr>
+<tr><td>사이트 구조가 바뀜</td><td>수집량이 평소 30% 아래로 떨어지면 경고. 직접 설정한 사이트는 ‘자동 패턴 찾기’로 대신 수집 시도</td></tr>
+<tr><td>하루 여러 번 수집됨</td><td>같은 글은 한 번만 저장, 점유율은 회차 평균 → 점수 부풀림 없음</td></tr>
+</table>
+<h3>보안</h3>
+<ul>
+<li>DB 비밀번호는 GitHub 비밀값과 Vercel 환경변수에만 있고, 코드·화면·브라우저로 나가지 않습니다.</li>
+<li>Supabase의 모든 표에 RLS(행 수준 보안)를 켜, 공개 키로는 데이터를 읽거나 바꿀 수 없습니다.</li>
+<li>커뮤니티 글은 제목·시각·반응 수만 저장하고 <b>작성자 닉네임·IP는 저장하지 않습니다.</b></li>
+<li>robots.txt가 금지한 페이지는 수집하지 않고, 봇 차단(방화벽·보안 검사)을 우회하지 않습니다.</li>
+</ul>
+<h3>비용과 용량</h3>
+<table>
+<tr><th>항목</th><th>현재</th><th>참고</th></tr>
+<tr><td>GitHub Actions</td><td class="num">0원</td><td>하루 약 3분 실행 (+ 건너뛰는 실행 30초씩)</td></tr>
+<tr><td>Supabase (DB)</td><td class="num">0원</td><td>하루 약 0.3~0.5MB 증가 → 1년 약 0.1~0.2GB</td></tr>
+<tr><td>Vercel (웹)</td><td class="num">0원</td><td>무료 요금제는 비상업 용도 조건</td></tr>
+</table>
+<p class="muted small">데이터는 표준 PostgreSQL이라 언제든 내보내기(CSV, pg_dump)가 가능하고, 다른 DB로 옮겨도 주소만 바꾸면 이어서 쌓입니다.</p>
+</section>
+
+<!-- ===================== 12. 한계 ===================== -->
+<section class="chapter">
+<h2><span class="no">12</span>한계와 앞으로의 계획</h2>
+<p>정직하게 알려드려야 할 현재의 한계입니다.</p>
+<div class="warn"><b>① 처음 2주는 점수가 부풀 수 있습니다.</b> ‘평소’를 정의할 이전 28일 데이터가 아직 없어, 처음 잡힌 증가가 모두 급상승처럼 보입니다(서비스 시작: 2026-11-17). → 과거 데이터가 충분히 쌓이기 전에는 해당 신호를 점수에서 빼도록 개선 예정.</div>
+<div class="warn"><b>② 중요도(1.5, 1.2 …)와 핫지수 기준(85점 = 급상승)은 상식으로 정한 초기값입니다.</b> 아직 데이터로 검증되지 않았습니다. → 몇 달 뒤 “실제로 유행한 종류”를 기준으로 다시 맞춤.</div>
+<div class="warn"><b>③ 신호 7개 중 4개만 실제로 들어옵니다.</b> 품절·리뷰·판매처 신호는 해당 정보를 주는 소스가 필요합니다. → 쿠팡·네이버 쇼핑 키 발급, 품절 표시가 있는 쇼핑몰 추가.</div>
+<div class="warn"><b>④ 국내 일부 사이트만 봅니다.</b> 중고나라·더쿠·번개장터는 접근 제한으로 제외됐고, 디시 아이돌 갤러리 일부는 굿즈 글이 적습니다.</div>
+<div class="warn"><b>⑤ 이용약관.</b> robots.txt는 지켰지만 각 사이트의 이용약관은 별도로 검토하지 않았습니다. 다른 사람에게 공개하거나 상업적으로 쓰려면 각 사이트 약관 확인이 필요합니다.</div>
+<h3>로드맵</h3>
+<table>
+<tr><th style="width:18%">시기</th><th>할 일</th></tr>
+<tr><td>지금 ~ 2주</td><td>초기 부풀림 방지, 사이트 고장 시 이메일 알림, 주간 자동 백업</td></tr>
+<tr><td>1개월</td><td>신규 단어 주간 검토 → 사전 보강, 활발한 갤러리·쇼핑몰 추가 (자동 패턴 찾기 활용)</td></tr>
+<tr><td>2~3개월</td><td>쌓인 데이터로 중요도·기준값 재조정, 유튜브·쿠팡 연결, 급상승 푸시 알림</td></tr>
+<tr><td>그 이후</td><td>“다음 주에 뜰 종류” 예측 모델(과거 신호 패턴 학습), 공개 서비스로 갈 경우 약관 검토와 유료 요금제 전환</td></tr>
+</table>
+<div class="easy" style="margin-top:16px"><b>마무리</b> — 굿즈 트렌드는 “감”이던 굿즈 유행 판단을 <b>매일, 같은 기준으로, 근거와 함께</b> 숫자로 만드는 도구입니다. 모든 수식은 단순하고 확인 가능한 방식으로 골랐고, 데이터가 쌓일수록 기준을 실제 결과에 맞춰 다듬어 갈 수 있도록 설계했습니다.</div>
+</section>
+</body></html>
