@@ -82,8 +82,9 @@ def test_youtube_parse():
     body = json.dumps({"search": {"items": [{"id": {"videoId": "v1"}, "snippet": {
         "title": "언박싱 하울", "publishedAt": "2026-11-17T01:00:00Z"}}]},
         "stats": {"v1": {"likeCount": "10", "commentCount": "5"}}})
-    out = YouTubeAdapter(None, "k").parse(raw("youtube", "search", {"q": "인형"}, body, "json"))
-    assert out[0].text.startswith("[인형]") and out[0].engagement == 15
+    out = YouTubeAdapter(None, "k").parse(raw("youtube", "search", {"q": "인형 굿즈"}, body, "json"))
+    assert out[0].text == "언박싱 하울" and out[0].engagement == 15     # 검색어를 붙이지 않음 → 새 단어 감시 가능
+    assert YouTubeAdapter(None, "k").discover(["인형"])[0].params["q"] == "인형 굿즈"
 
 
 def test_idol_gallery_keeps_only_goods_posts():

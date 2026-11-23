@@ -21,6 +21,7 @@ jobs:
     timeout-minutes: 30
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}   # 없으면 유튜브만 건너뜀
       RAW_STORE: "off"          # Actions 디스크는 실행 후 사라지므로 원본 저장 안 함
       TZ: Asia/Seoul             # 날짜·시간을 한국 기준으로 (늦은 실행이 하루 어긋나지 않게)
       PYTHONUNBUFFERED: "1"

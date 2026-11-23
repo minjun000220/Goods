@@ -8,7 +8,7 @@
 │ KREAM        │ ✅ 바로 됨 │ HTML 검색 결과. robots.txt 가 /search 허용. 거래 수·시세        │
 │ 디시인사이드    │ ✅ 바로 됨 │ 굿즈 갤러리 + 아이돌 갤러리 17곳 최신 글 중 굿즈 언급 글만 (HTML)   │
 │ 쿠팡          │ ⏸ 꺼둠   │ 웹은 봇 차단(403) → 쿠팡 파트너스 공식 API (베스트 카테고리)       │
-│ 유튜브        │ ⏸ 꺼둠   │ YouTube Data API v3                                          │
+│ 유튜브        │ 🔑 키 필요 │ YouTube Data API v3                                          │
 │ 네이버 쇼핑    │ 🔑 키 필요 │ 공식 검색 API. ⚠️ 2026-07-31 개발자센터 신규 등록 중단,            │
 │              │          │ 쇼핑 검색 종료 보도 있음 → 키를 못 받으면 자동으로 건너뜀           │
 └──────────────┴──────────┴─────────────────────────────────────────────────────────────┘
@@ -97,7 +97,7 @@ AUTO_SITES: list[AutoSiteConfig] = [
 
 # 지금은 꺼둔 소스 (키를 발급받은 뒤 True 로 바꾼다)
 ENABLE_COUPANG = False
-ENABLE_YOUTUBE = False
+ENABLE_YOUTUBE = True      # 키(YOUTUBE_API_KEY)가 없으면 자동으로 건너뜀
 
 
 def build_adapters(fetcher) -> list[SourceAdapter]:

@@ -9,6 +9,7 @@
 """
 from __future__ import annotations
 
+import html
 import json
 from datetime import datetime, timedelta, timezone
 
@@ -31,7 +32,8 @@ class YouTubeAdapter(SourceAdapter):
 
     def discover(self, keywords: list[str]) -> list[CrawlTask]:
         since = (datetime.now(timezone.utc) - timedelta(hours=self.lookback_hours)).strftime("%Y-%m-%dT%H:%M:%SZ")
-        return [CrawlTask(self.source_id, "search", {"q": kw, "publishedAfter": since}) for kw in keywords]
+        # "인형"만 검색하면 아이 장난감 영상이 대부분 → "인형 굿즈"처럼 굿즈 맥락으로 좁힌다
+        return [CrawlTask(self.source_id, "search", {"q": f"{kw} 굿즈", "publishedAfter": since}) for kw in keywords]
 
     async def fetch(self, task: CrawlTask) -> RawDocument:
         search = (await self.fetcher.request("GET", SEARCH_URL, check_robots=False, params={
@@ -51,7 +53,6 @@ class YouTubeAdapter(SourceAdapter):
 
     def parse(self, raw: RawDocument) -> list[MentionRecord]:
         data = json.loads(raw.body)
-        q = raw.task.params["q"]
         out = []
         for it in data["search"].get("items", []):
             vid = it.get("id", {}).get("videoId")
@@ -63,8 +64,9 @@ class YouTubeAdapter(SourceAdapter):
             out.append(MentionRecord(
                 source_id=self.source_id,
                 external_id=vid,
-                # 제목에 종류 이름이 없을 수 있어 검색어를 앞에 붙인다 (종류 판별용)
-                text=f"[{q}] {sn.get('title', '')}",
+                # 제목 그대로 저장: 종류 이름이 있으면 그 종류의 언급량에, 없으면 '미분류'로 남아
+                # 새로 뜨는 단어(예: "훈바루즈") 감시에 쓰인다. (검색어를 붙이면 새 단어를 못 잡음)
+                text=html.unescape(sn.get("title", "")),
                 url=f"https://www.youtube.com/watch?v={vid}",
                 observed_at=published.astimezone().replace(tzinfo=None),
                 engagement=int(st.get("likeCount", 0)) + int(st.get("commentCount", 0)),

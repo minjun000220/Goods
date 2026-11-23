@@ -23,6 +23,12 @@ def test_spacing_variants_and_new_aliases():
     assert classify_goods_type("토이스토리 맥세이프 케이스") == "폰케이스"
 
 
+def test_trending_item_aliases():
+    assert classify_goods_type("소니엔젤 훈바루즈 자세교정 인형 20종") == "인형"
+    assert classify_goods_type("치이카와 하치와레 훈바루즈") == "인형"
+    assert classify_goods_type("JELLYCAT 바쉬풀 버니") == "인형"
+
+
 def test_unknown_type_is_none():
     assert classify_goods_type("치이카와 말랑이 스퀴시") is None
     assert classify_goods_type("albumin 보충제") is None     # 영문 별칭은 단어 경계 지킴
