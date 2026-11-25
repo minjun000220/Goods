@@ -144,3 +144,36 @@ def test_adapter_time_budget_stops_hanging_site():
     t0 = _t.monotonic()
     _, st = asyncio.run(Hangs().run([]))
     assert _t.monotonic() - t0 < 5 and "시간 초과" in " ".join(st.errors)
+
+
+def _ktown_page(items):
+    data = {"props": {"pageProps": {"result": {"data": items, "currentPage": 1}}}}
+    return f'<html><script id="__NEXT_DATA__" type="application/json">{json.dumps(data, ensure_ascii=False)}</script></html>'
+
+
+def test_ktown4u_parses_next_data_and_uses_site_category():
+    from collectors.sources.ktown4u import Ktown4uAdapter
+    items = [
+        {"goodsNo": 166935, "goodsNm": "레드벨벳 (Red Velvet) - [2026 FANCON MD] 응원봉 미니 키링", "dispPrice": 16000,
+         "dispDcPrice": 16000, "kindNm": "Keyring", "goodsTotSale": 4200, "sellQtyHideYn": "N", "saleYn": "Y",
+         "grpNm": "Red Velvet"},
+        {"goodsNo": 168989, "goodsNm": "유나이트 (YOUNITE) - 공식 응원봉", "dispPrice": 49000, "dispDcPrice": 45000,
+         "kindNm": "FAN Light", "goodsTotSale": None, "sellQtyHideYn": "Y", "saleYn": "N"},
+        {"goodsNo": 1, "goodsNm": "엑소 (EXO) - 콘서트 MD 아크릴 스탠드", "dispPrice": 22000, "kindNm": "Toy",
+         "goodsTotSale": 6253, "sellQtyHideYn": "N", "saleYn": "Y"},
+        {"goodsNo": 2, "goodsNm": "", "dispPrice": 1000},                              # 이름 없음 → 버림
+    ]
+    out = Ktown4uAdapter().parse(raw("ktown4u", "search", {"keyword": "응원봉"}, _ktown_page(items)))
+    assert [o.external_id for o in out] == ["166935", "168989", "1"]
+    kr, ls, toy = out
+    assert kr.goods_type_hint == "키링" and kr.price == 16000 and kr.sales_count == 4200 and kr.stock_status == "in_stock"
+    assert ls.goods_type_hint == "응원봉" and ls.price == 45000 and ls.sales_count is None and ls.stock_status == "sold_out"
+    assert toy.goods_type_hint is None and toy.sales_count == 6253          # 분류가 애매하면 제목으로 (처리 단계)
+    assert kr.url == "https://kr.ktown4u.com/iteminfo?goods_no=166935" and kr.rank_list == "search:ktown4u:응원봉"
+    assert Ktown4uAdapter().parse(raw("ktown4u", "search", {"keyword": "x"}, "<html>no data</html>")) == []
+
+
+def test_kind_to_type_season_greetings():
+    from collectors.sources.ktown4u import kind_to_type
+    assert kind_to_type("2027 SEASON'S GREETINGS") == "시즌그리팅"
+    assert kind_to_type("Plush Toys") == "인형" and kind_to_type("Toy") is None and kind_to_type(None) is None

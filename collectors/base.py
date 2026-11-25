@@ -54,6 +54,7 @@ class ListingSnapshot:
     review_count: int | None = None
     sales_count: int | None = None  # 누적 판매/거래 수 (KREAM '거래' 수 등)
     seller_type: str = "retail"  # retail(정가 판매) | resale(중고/리셀)
+    goods_type_hint: str | None = None  # 사이트가 알려 준 굿즈 종류 (있으면 제목 판별보다 우선)
 
 
 @dataclass

@@ -32,3 +32,23 @@ def test_trending_item_aliases():
 def test_unknown_type_is_none():
     assert classify_goods_type("치이카와 말랑이 스퀴시") is None
     assert classify_goods_type("albumin 보충제") is None     # 영문 별칭은 단어 경계 지킴
+
+
+def test_fanlight_is_light_stick():
+    from processing.nlp import classify_goods_type
+    assert classify_goods_type("OFFICIAL FANLIGHT VER.3.0") == "응원봉"
+    assert classify_goods_type("공식 팬라이트") == "응원봉"
+
+
+def test_processor_prefers_site_category():
+    from datetime import datetime
+    from unittest.mock import MagicMock
+
+    from collectors.base import ListingSnapshot
+    from processing.processor import Processor
+    repo = MagicMock()
+    repo.bulk_add_mentions.return_value = []
+    snap = ListingSnapshot("ktown4u", "1", "응원봉 미니 키링", "u", datetime(2026, 11, 1), goods_type_hint="키링")
+    Processor(repo).handle([snap])
+    (pairs,), _ = repo.bulk_save_listings.call_args
+    assert pairs[0][1] == "키링"

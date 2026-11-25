@@ -1,0 +1,21 @@
+Metadata-Version: 2.4
+Name: goods-trend
+Version: 0.1.0
+Summary: 웹 데이터를 수집해 요즘 뜨는 굿즈를 분석하는 시스템
+Requires-Python: >=3.11
+Requires-Dist: httpx>=0.27
+Requires-Dist: sqlalchemy>=2.0
+Requires-Dist: pandas>=2.2
+Requires-Dist: numpy>=1.26
+Requires-Dist: fastapi>=0.110
+Requires-Dist: uvicorn>=0.29
+Requires-Dist: beautifulsoup4>=4.12
+Requires-Dist: psycopg[binary]>=3.1
+Provides-Extra: nlp
+Requires-Dist: kiwipiepy>=0.17; extra == "nlp"
+Provides-Extra: browser
+Requires-Dist: playwright>=1.44; extra == "browser"
+Provides-Extra: dashboard
+Requires-Dist: streamlit>=1.35; extra == "dashboard"
+Provides-Extra: dev
+Requires-Dist: pytest>=8; extra == "dev"

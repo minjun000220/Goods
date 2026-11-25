@@ -6,6 +6,9 @@
 ├──────────────┼──────────┼─────────────────────────────────────────────────────────────┤
 │ 애니메이트     │ ✅ 바로 됨 │ HTML. robots.txt 가 /goods/ 허용. 신상품·예약상품 판매인기순      │
 │ KREAM        │ ✅ 바로 됨 │ HTML 검색 결과. robots.txt 가 /search 허용. 거래 수·시세        │
+│ 케이타운포유   │ ✅ 바로 됨 │ K-pop 공식 굿즈몰 검색 (페이지 내 데이터). 판매가·누적 판매 수량   │
+│ YG SELECT    │ ✅ 바로 됨 │ YG 공식몰 검색 (자동 패턴 찾기). 판매가                         │
+│ SMTOWN&STORE │ ✅ 바로 됨 │ SM 공식몰 검색 (자동 패턴 찾기). 판매가                         │
 │ 디시인사이드    │ ✅ 바로 됨 │ 굿즈 갤러리 + 아이돌 갤러리 17곳 최신 글 중 굿즈 언급 글만 (HTML)   │
 │ 쿠팡          │ ⏸ 꺼둠   │ 웹은 봇 차단(403) → 쿠팡 파트너스 공식 API (베스트 카테고리)       │
 │ 유튜브        │ 🔑 키 필요 │ YouTube Data API v3                                          │
@@ -23,6 +26,7 @@ from collectors.sources.best_ranking import BestRankingAdapter, RankingConfig
 from collectors.sources.community_board import BoardConfig, CommunityBoardAdapter
 from collectors.sources.coupang_partners import CoupangPartnersAdapter
 from collectors.sources.kream import KreamAdapter
+from collectors.sources.ktown4u import Ktown4uAdapter
 from collectors.sources.naver_shopping import NaverShoppingAdapter
 from collectors.sources.youtube import YouTubeAdapter
 from config import settings
@@ -91,8 +95,10 @@ BOARDS: list[BoardConfig] = [
 # 자동 패턴 찾기로 수집하는 사이트: 주소만 넣으면 된다 (셀렉터 불필요)
 # 넣기 전에 확인: python -m tools.try_auto "<주소>"   ({page}, {kw} 자리표시자 사용 가능)
 AUTO_SITES: list[AutoSiteConfig] = [
+    # 아이돌 소속사 공식몰 (카페24). robots.txt 가 /product/ 허용, /exec/front/·/member/ 등만 금지 — 2026-11 확인
+    AutoSiteConfig(source_id="ygselect", url="https://www.ygselect.com/product/search.html?keyword={kw}"),
+    AutoSiteConfig(source_id="smtownandstore", url="https://www.smtownandstore.com/product/search.html?keyword={kw}"),
     # AutoSiteConfig(source_id="some_mall_best", url="https://mall.example/best?page={page}", pages=2),
-    # AutoSiteConfig(source_id="some_mall_search", url="https://mall.example/search?q={kw}"),
 ]
 
 # 지금은 꺼둔 소스 (키를 발급받은 뒤 True 로 바꾼다)
@@ -125,6 +131,7 @@ def build_adapters(fetcher) -> list[SourceAdapter]:
 
     # 키 없이 바로 되는 소스
     adapters.append(KreamAdapter(fetcher))
+    adapters.append(Ktown4uAdapter(fetcher))                 # K-pop 공식 굿즈 판매가 + 누적 판매 수량
     adapters += [BestRankingAdapter(fetcher, cfg) for cfg in RANKINGS]
     adapters += [AutoSiteAdapter(fetcher, cfg) for cfg in AUTO_SITES]
     adapters += [CommunityBoardAdapter(fetcher, cfg) for cfg in BOARDS]

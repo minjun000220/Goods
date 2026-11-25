@@ -1,0 +1,10 @@
+analytics
+api
+collectors
+config
+dashboard
+monitoring
+pipelines
+processing
+storage
+tools

@@ -24,7 +24,7 @@ class Processor:
         listings, mentions = [], []
         for item in items:
             if isinstance(item, ListingSnapshot):
-                gt = classify_goods_type(item.title)
+                gt = item.goods_type_hint or classify_goods_type(item.title)   # 사이트 분류 우선
                 stats["listing" if gt else "listing_unclassified"] += 1
                 listings.append((item, gt))
             elif isinstance(item, MentionRecord):
