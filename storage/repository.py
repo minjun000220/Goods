@@ -8,7 +8,8 @@ from sqlalchemy.orm import Session
 
 from collectors.base import ListingSnapshot as SnapshotDTO
 from collectors.base import MentionRecord, MetricPoint, RunStats
-from storage.models import CrawlRun, DailyInsight, HotScore, Listing, ListingSnapshot, Mention, TypeMetric
+from storage.models import (CrawlRun, DailyInsight, HotScore, ItemScore, Listing, ListingSnapshot, Mention,
+                            TypeMetric)
 
 
 CHUNK = 500   # IN (...) 한 번에 넣는 개수
@@ -34,13 +35,14 @@ class Repository:
         self.session = session
 
     # -- 대량 저장 (클라우드 DB 왕복 횟수를 줄이기 위해 수백 건을 몇 번의 쿼리로 처리) ------------
-    def bulk_save_listings(self, pairs: list[tuple[SnapshotDTO, str | None]]) -> int:
-        """(스냅샷, 굿즈 종류) 목록을 저장. 새로 저장한 스냅샷 수를 돌려준다."""
+    def bulk_save_listings(self, pairs: list[tuple]) -> int:
+        """(스냅샷, 굿즈 종류[, 주목 아이템]) 목록을 저장. 새로 저장한 스냅샷 수를 돌려준다."""
         if not pairs:
             return 0
-        latest: dict[tuple[str, str], tuple[SnapshotDTO, str | None]] = {}
-        for snap, gt in pairs:
-            latest[(snap.source_id, snap.external_id)] = (snap, gt)
+        pairs = [(p[0], p[1], p[2] if len(p) > 2 else None) for p in pairs]
+        latest: dict[tuple[str, str], tuple] = {}
+        for snap, gt, item in pairs:
+            latest[(snap.source_id, snap.external_id)] = (snap, gt, item)
 
         listings: dict[tuple[str, str], Listing] = {}
         for source in {k[0] for k in latest}:
@@ -51,16 +53,19 @@ class Repository:
                     listings[(source, row.external_id)] = row
 
         new = []
-        for key, (snap, gt) in latest.items():
+        for key, (snap, gt, item) in latest.items():
             row = listings.get(key)
             if row is None:
                 new.append({"source_id": snap.source_id, "external_id": snap.external_id, "goods_type": gt,
+                            "item": item,
                             "title_raw": snap.title[:500], "url": snap.url[:1000], "seller_type": snap.seller_type})
             else:
                 if row.title_raw != snap.title[:500]:
                     row.title_raw = snap.title[:500]
                 if row.goods_type != gt:
                     row.goods_type = gt
+                if row.item != item:
+                    row.item = item
         if new:
             # 여러 줄을 한 번에 INSERT 한 뒤, 새 ID 는 묶음 SELECT 로 받아온다
             for chunk in _chunks(new):
@@ -73,15 +78,15 @@ class Repository:
                         listings[(source, ext)] = _IdOnly(lid)
         self.session.flush()
 
-        ids = {listings[(s.source_id, s.external_id)].id for s, _ in pairs}
-        times = {s.observed_at for s, _ in pairs}
+        ids = {listings[(s.source_id, s.external_id)].id for s, _, _ in pairs}
+        times = {s.observed_at for s, _, _ in pairs}
         existing: set[tuple[int, object]] = set()
         for chunk in _chunks(ids):
             existing |= set(self.session.execute(select(ListingSnapshot.listing_id, ListingSnapshot.observed_at)
                                                  .where(ListingSnapshot.listing_id.in_(chunk),
                                                         ListingSnapshot.observed_at.in_(times))).all())
         snaps = []
-        for snap, _ in pairs:
+        for snap, _, _ in pairs:
             lid = listings[(snap.source_id, snap.external_id)].id
             if (lid, snap.observed_at) in existing:
                 continue
@@ -93,21 +98,22 @@ class Repository:
             self.session.execute(insert(ListingSnapshot).execution_options(render_nulls=True), chunk)
         return len(snaps)
 
-    def bulk_add_mentions(self, pairs: list[tuple[MentionRecord, str | None]]) -> list[str | None]:
+    def bulk_add_mentions(self, pairs: list[tuple]) -> list[str | None]:
         """새 언급만 저장하고, 저장된 것들의 굿즈 종류 목록을 돌려준다 (통계용)."""
         existing: set[tuple[str, str]] = set()
-        for source in {m.source_id for m, _ in pairs}:
-            ids = [m.external_id for m, _ in pairs if m.source_id == source]
+        pairs = [(p[0], p[1], p[2] if len(p) > 2 else None) for p in pairs]
+        for source in {m.source_id for m, _, _ in pairs}:
+            ids = [m.external_id for m, _, _ in pairs if m.source_id == source]
             for chunk in _chunks(ids):
                 existing |= {(source, e) for e in self.session.scalars(select(Mention.external_id).where(
                     Mention.source_id == source, Mention.external_id.in_(chunk)))}
         added, rows = [], []
-        for m, gt in pairs:
+        for m, gt, item in pairs:
             key = (m.source_id, m.external_id)
             if key in existing:
                 continue
             existing.add(key)
-            rows.append({"source_id": m.source_id, "external_id": m.external_id, "goods_type": gt,
+            rows.append({"source_id": m.source_id, "external_id": m.external_id, "goods_type": gt, "item": item,
                          "text": m.text[:2000], "url": m.url[:1000], "observed_at": m.observed_at,
                          "engagement": m.engagement})
             added.append(gt)
@@ -158,6 +164,10 @@ class Repository:
                                         metric=p.metric, date=p.date, value=p.value))
         else:
             row.value = p.value
+
+    def replace_item_scores(self, as_of: date, rows: list[dict]) -> None:
+        self.session.execute(delete(ItemScore).where(ItemScore.as_of == as_of))
+        self.session.add_all(ItemScore(as_of=as_of, **r) for r in rows)
 
     def replace_scores(self, as_of: date, rows: list[dict]) -> None:
         self.session.execute(delete(HotScore).where(HotScore.as_of == as_of))

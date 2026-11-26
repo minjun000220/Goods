@@ -79,3 +79,33 @@ export async function getInsight(asOf: string): Promise<{ bursts: Burst[]; newTy
     return { bursts: [], newTypes: [] };      // 표가 아직 없으면 (첫 배포 직후) 비워 둔다
   }
 }
+
+// ---- 주목 아이템 (item_score 표). 형태는 GoodsScore 와 같고 goodsType 자리에 아이템 이름이 들어간다 ----
+type ItemRow = { item: string; rank: number; score: number; breakdown: Record<string, unknown> };
+const itemToScore = (r: ItemRow) => toScore({ goods_type: r.item, rank: r.rank, score: r.score, breakdown: r.breakdown });
+
+export async function getItemRanking(asOf: string): Promise<GoodsScore[]> {
+  try {
+    const rows = await sql<ItemRow[]>`
+      select item, rank, score, breakdown from item_score where as_of = ${asOf}::date order by rank`;
+    return rows.map(itemToScore);
+  } catch {
+    return [];                                   // 표가 아직 없으면 (업데이트 직후) 비워 둔다
+  }
+}
+
+export async function getItemScore(asOf: string, item: string): Promise<GoodsScore | null> {
+  const rows = await sql<ItemRow[]>`
+    select item, rank, score, breakdown from item_score where as_of = ${asOf}::date and item = ${item}`;
+  return rows[0] ? itemToScore(rows[0]) : null;
+}
+
+export async function getItemHistory(item: string, days = 60): Promise<HistoryPoint[]> {
+  const rows = await sql<{ date: string; rank: number; score: number; breakdown: Record<string, unknown> }[]>`
+    select to_char(as_of, 'YYYY-MM-DD') as date, rank, score, breakdown from item_score
+    where item = ${item} order by as_of desc limit ${days}`;
+  return rows.reverse().map((r) => ({
+    date: r.date, rank: r.rank,
+    hotIndex: itemToScore({ item, rank: r.rank, score: r.score, breakdown: r.breakdown }).hotIndex,
+  }));
+}

@@ -27,6 +27,7 @@ class Listing(Base):
     source_id: Mapped[str] = mapped_column(String(50))
     external_id: Mapped[str] = mapped_column(String(200))
     goods_type: Mapped[str | None] = mapped_column(String(50), index=True)
+    item: Mapped[str | None] = mapped_column(String(50), index=True)      # 주목 아이템 (훈바루즈 등)
     title_raw: Mapped[str] = mapped_column(String(500))
     url: Mapped[str] = mapped_column(String(1000))
     seller_type: Mapped[str] = mapped_column(String(20), default="retail")
@@ -57,6 +58,7 @@ class Mention(Base):
     source_id: Mapped[str] = mapped_column(String(50))
     external_id: Mapped[str] = mapped_column(String(200))
     goods_type: Mapped[str | None] = mapped_column(String(50), index=True)
+    item: Mapped[str | None] = mapped_column(String(50), index=True)
     text: Mapped[str] = mapped_column(Text)
     url: Mapped[str] = mapped_column(String(1000))
     observed_at: Mapped[datetime] = mapped_column(DateTime)
@@ -82,6 +84,18 @@ class HotScore(Base):
     __table_args__ = (UniqueConstraint("goods_type", "as_of"),)
     id: Mapped[int] = mapped_column(primary_key=True)
     goods_type: Mapped[str] = mapped_column(String(50))
+    as_of: Mapped[date] = mapped_column(Date, index=True)
+    score: Mapped[float] = mapped_column(Float)
+    rank: Mapped[int] = mapped_column(Integer)
+    breakdown: Mapped[dict] = mapped_column(JSON)
+
+
+class ItemScore(Base):
+    """주목 아이템 점수. 굿즈 종류와 같은 잣대(종류들의 분포 기준)로 계산한다."""
+    __tablename__ = "item_score"
+    __table_args__ = (UniqueConstraint("item", "as_of"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    item: Mapped[str] = mapped_column(String(50))
     as_of: Mapped[date] = mapped_column(Date, index=True)
     score: Mapped[float] = mapped_column(Float)
     rank: Mapped[int] = mapped_column(Integer)

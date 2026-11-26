@@ -69,6 +69,15 @@ def score(as_of: date, top: int = 10) -> None:
               f"근거: {why or '-'}")
         if r["examples"]:
             print(f"      예) {', '.join(r['examples'][:3])}")
+    items = scored.attrs.get("items")
+    if items is not None and not items.empty:
+        ibd = items.attrs.get("breakdowns", {})
+        print("\n=== 👀 주목 아이템 (굿즈 종류와 같은 잣대) ===")
+        for it, r in items.iterrows():
+            b = ibd[it]
+            top_sig = sorted(b["signals"].values(), key=lambda v: -abs(v["points"]))[:2]
+            why = ", ".join(f"{v['label']} {v['points']:+.0f}" for v in top_sig if v["points"])
+            print(f"{int(r['rank']):>2}. {it:<7} 핫지수 {b['hot_index']:>3}점 {b['label']:<6} 근거: {why or '-'}")
     print("\n=== 📈 언급량 급상승 ===")
     print(bursts or "없음")
     print("\n=== 🆕 사전에 없는 새 굿즈 종류 후보 (확인 후 dictionaries.py 에 추가) ===")

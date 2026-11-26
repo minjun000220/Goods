@@ -14,10 +14,12 @@ import numpy as np
 from sqlalchemy.orm import Session
 
 from analytics.signals import load_mentions, load_snapshots
-from processing.dictionaries import GOODS_TYPE_ALIASES, IGNORE_WORDS, STOPWORDS
+from processing.dictionaries import GOODS_TYPE_ALIASES, IGNORE_WORDS, STOPWORDS, TRACKED_ITEMS
 from processing.nlp import nouns
 
-KNOWN_WORDS = {a.lower() for al in GOODS_TYPE_ALIASES.values() for a in al} | STOPWORDS | IGNORE_WORDS
+KNOWN_WORDS = ({a.lower() for al in GOODS_TYPE_ALIASES.values() for a in al}
+               | {a.lower() for al in TRACKED_ITEMS.values() for a in al}     # 이미 추적 중인 아이템은 제외
+               | STOPWORDS | IGNORE_WORDS)
 
 
 def detect_mention_bursts(session: Session, as_of: date, z_threshold: float = 3.0,

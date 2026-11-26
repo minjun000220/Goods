@@ -35,3 +35,25 @@ def test_raw_store_keep_forever(tmp_path):
                            datetime(2020, 1, 1, 12), "html", "<p>old</p>"))
     assert store.cleanup(today=date(2026, 11, 17)) == 0
     assert (tmp_path / "kream" / "2020-01-01").exists()
+
+
+def test_add_missing_columns_on_existing_tables(tmp_path):
+    """이미 만들어진 표(옛 구조)에 새 칸(item)이 자동으로 추가되는지."""
+    from sqlalchemy import create_engine, inspect, text
+
+    from storage.db import init_db
+    eng = create_engine(f"sqlite:///{tmp_path}/old.db")
+    with eng.begin() as c:   # 옛 구조: item 칸이 없는 listing / mention
+        c.execute(text("CREATE TABLE listing (id INTEGER PRIMARY KEY, source_id VARCHAR(50), external_id VARCHAR(200), "
+                       "goods_type VARCHAR(50), title_raw VARCHAR(500), url VARCHAR(1000), seller_type VARCHAR(20))"))
+        c.execute(text("CREATE TABLE mention (id INTEGER PRIMARY KEY, source_id VARCHAR(50), external_id VARCHAR(200), "
+                       "goods_type VARCHAR(50), text TEXT, url VARCHAR(1000), observed_at DATETIME, engagement INTEGER)"))
+        c.execute(text("INSERT INTO listing (source_id, external_id, title_raw, url, seller_type) VALUES ('a','1','t','u','retail')"))
+    init_db(eng)
+    insp = inspect(eng)
+    assert "item" in {c["name"] for c in insp.get_columns("listing")}
+    assert "item" in {c["name"] for c in insp.get_columns("mention")}
+    assert insp.has_table("item_score")
+    with eng.begin() as c:   # 기존 데이터는 그대로
+        assert c.execute(text("select count(*) from listing")).scalar() == 1
+    init_db(eng)             # 두 번 실행해도 에러 없음

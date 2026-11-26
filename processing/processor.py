@@ -10,7 +10,7 @@ from __future__ import annotations
 from collections import Counter
 
 from collectors.base import ListingSnapshot, MentionRecord, MetricPoint, ParsedItem
-from processing.nlp import classify_goods_type
+from processing.nlp import classify_goods_type, classify_item
 from storage.repository import Repository
 
 
@@ -26,9 +26,9 @@ class Processor:
             if isinstance(item, ListingSnapshot):
                 gt = item.goods_type_hint or classify_goods_type(item.title)   # 사이트 분류 우선
                 stats["listing" if gt else "listing_unclassified"] += 1
-                listings.append((item, gt))
+                listings.append((item, gt, classify_item(item.title)))
             elif isinstance(item, MentionRecord):
-                mentions.append((item, classify_goods_type(item.text)))
+                mentions.append((item, classify_goods_type(item.text), classify_item(item.text)))
             elif isinstance(item, MetricPoint):
                 self.repo.upsert_metric(item, classify_goods_type(item.keyword))
                 stats["metric"] += 1

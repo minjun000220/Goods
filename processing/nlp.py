@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from functools import lru_cache
 
-from processing.dictionaries import GOODS_TYPE_ALIASES
+from processing.dictionaries import GOODS_TYPE_ALIASES, TRACKED_ITEMS
 from processing.normalize import clean_title
 
 TOKEN_RE = re.compile(r"[가-힣]+|[a-z0-9]+")
@@ -28,27 +28,43 @@ def _index(d: dict[str, list[str]]) -> list[tuple[re.Pattern, str, str]]:
 
 
 TYPE_INDEX = _index(GOODS_TYPE_ALIASES)
+ITEM_INDEX = _index(TRACKED_ITEMS)
 
-# 띄어쓰기를 무시한 비교용: 한글 별칭(3글자 이상)을 공백 없이 저장
-_COMPACT_ALIASES = sorted(
-    {(a.replace(" ", "").lower(), canonical)
-     for canonical, aliases in GOODS_TYPE_ALIASES.items() for a in aliases
-     if not a.isascii() and len(a.replace(" ", "")) >= 3},
-    key=lambda r: -len(r[0]),
-)
+
+def _compact(d: dict[str, list[str]]):
+    """띄어쓰기를 무시한 비교용: 한글 별칭(3글자 이상)을 공백 없이 저장"""
+    return sorted(
+        {(a.replace(" ", "").lower(), canonical)
+         for canonical, aliases in d.items() for a in aliases
+         if not a.isascii() and len(a.replace(" ", "")) >= 3},
+        key=lambda r: -len(r[0]),
+    )
+
+
+_COMPACT_ALIASES = _compact(GOODS_TYPE_ALIASES)
+_COMPACT_ITEMS = _compact(TRACKED_ITEMS)
+
+
+def _match(text: str, index, compact) -> str | None:
+    t = clean_title(text)
+    for pat, canonical, _ in index:
+        if pat.search(t):
+            return canonical
+    c = t.replace(" ", "")              # "시즌 그리팅", "포토 카드", "봉제 인형" 처럼 띄어 쓴 표기
+    for alias, canonical in compact:
+        if alias in c:
+            return canonical
+    return None
+
+
+def classify_item(text: str) -> str | None:
+    """주목 아이템(TRACKED_ITEMS) 판별: '소니엔젤 훈바루즈 판다' → '훈바루즈'. 없으면 None."""
+    return _match(text, ITEM_INDEX, _COMPACT_ITEMS)
 
 
 def classify_goods_type(text: str) -> str | None:
     """'[공식] aespa 응원봉 ★당일발송★' → '응원봉'. 판별 불가면 None."""
-    t = clean_title(text)
-    for pat, canonical, _ in TYPE_INDEX:
-        if pat.search(t):
-            return canonical
-    compact = t.replace(" ", "")              # "시즌 그리팅", "포토 카드", "봉제 인형" 처럼 띄어 쓴 표기
-    for alias, canonical in _COMPACT_ALIASES:
-        if alias in compact:
-            return canonical
-    return None
+    return _match(text, TYPE_INDEX, _COMPACT_ALIASES)
 
 
 @lru_cache(maxsize=1)

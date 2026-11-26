@@ -35,6 +35,13 @@ def test_demo_end_to_end(session):
     assert b["rank_change"] is not None and b["prev_as_of"] == "2026-11-16"
     assert sum(v["points"] for v in b["signals"].values()) > 30           # 근거 점수 합계
 
+    # 주목 아이템: 종류와 별도 순위, 종류와 같은 잣대
+    items = scored.attrs["items"]
+    assert set(items.index) == {"훈바루즈", "젤리캣"}
+    assert items.attrs["breakdowns"]["훈바루즈"]["hot_index"] > 60       # 인형 급상승과 함께 오름
+    assert items.attrs["breakdowns"]["젤리캣"]["hot_index"] < 50         # 식는 키링에 속함
+    assert scored.loc["인형", "rank"] == 1                                # 훈바루즈도 인형 점수에 포함된 채로
+
     assert detect_mention_bursts(session, end)[0]["goods_type"] == "인형"
     Repository(session).save_insight(end, detect_mention_bursts(session, end), [{"keyword": "말랑이"}])
     Repository(session).save_insight(end, [], [{"keyword": "말랑이"}])        # 같은 날 다시 저장 = 덮어쓰기

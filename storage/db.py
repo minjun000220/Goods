@@ -37,8 +37,31 @@ SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 def init_db(eng: Engine = engine) -> None:
     """테이블 생성 (없을 때만). 운영에서 스키마가 크게 바뀌면 Alembic 마이그레이션을 쓴다."""
     Base.metadata.create_all(eng)
+    _add_missing_columns(eng)
     if eng.dialect.name == "postgresql":
         _enable_rls(eng)
+
+
+def _add_missing_columns(eng: Engine) -> None:
+    """이미 만들어진 표(예: Supabase)에 코드에서 새로 생긴 칸을 추가한다.
+    create_all 은 '없는 표'만 만들고 '있는 표의 새 칸'은 추가하지 않기 때문.
+    새 칸은 모두 비어 있어도 되는(nullable) 칸만 이 방식으로 추가한다."""
+    from sqlalchemy import inspect, text
+
+    insp = inspect(eng)
+    with eng.begin() as conn:
+        for table in Base.metadata.sorted_tables:
+            if not insp.has_table(table.name):
+                continue
+            have = {c["name"] for c in insp.get_columns(table.name)}
+            for col in table.columns:
+                if col.name in have or not col.nullable:
+                    continue
+                coltype = col.type.compile(dialect=eng.dialect)
+                conn.execute(text(f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" {coltype}'))
+                if col.index:
+                    conn.execute(text(f'CREATE INDEX IF NOT EXISTS "ix_{table.name}_{col.name}" '
+                                      f'ON "{table.name}" ("{col.name}")'))
 
 
 def _enable_rls(eng: Engine) -> None:

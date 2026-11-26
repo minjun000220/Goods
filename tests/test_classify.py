@@ -29,6 +29,15 @@ def test_trending_item_aliases():
     assert classify_goods_type("JELLYCAT 바쉬풀 버니") == "인형"
 
 
+def test_tracked_item_is_separate_from_type():
+    from processing.nlp import classify_item
+    t = "소니엔젤 훈바루즈 자세교정 인형 판다"
+    assert classify_goods_type(t) == "인형"          # 종류 집계에도 그대로 들어가고
+    assert classify_item(t) == "훈바루즈"             # 아이템으로도 따로 잡힌다
+    assert classify_item("치이카와 하치와레 훈 바루즈") == "훈바루즈"   # 띄어쓰기 달라도
+    assert classify_item("BTS 응원봉") is None
+
+
 def test_unknown_type_is_none():
     assert classify_goods_type("치이카와 말랑이 스퀴시") is None
     assert classify_goods_type("albumin 보충제") is None     # 영문 별칭은 단어 경계 지킴

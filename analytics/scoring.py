@@ -17,7 +17,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from analytics.signals import SIGNALS, compute_type_signals
-from storage.models import HotScore
+from storage.models import HotScore, ItemScore
 from storage.repository import Repository
 
 WEIGHTS: dict[str, float] = {
@@ -59,8 +59,10 @@ def index_label(idx: int) -> str:
     return "🧊 급하락"
 
 
-def robust_z(s: pd.Series) -> pd.Series:
-    valid = s.dropna()
+def robust_z(s: pd.Series, ref: pd.Series | None = None) -> pd.Series:
+    """ref 가 주어지면 그 분포(중앙값·MAD)를 잣대로 s 를 잰다.
+    주목 아이템은 몇 개뿐이라 자기들끼리 비교하면 의미가 없어서, 굿즈 종류들의 분포를 잣대로 쓴다."""
+    valid = (s if ref is None else ref).dropna()
     if len(valid) < 2:
         return pd.Series(0.0, index=s.index).where(s.notna())
     med = valid.median()
@@ -72,12 +74,13 @@ def robust_z(s: pd.Series) -> pd.Series:
     return ((s - med) / scale).clip(-Z_CLIP, Z_CLIP)
 
 
-def score_frame(df: pd.DataFrame) -> pd.DataFrame:
+def score_frame(df: pd.DataFrame, ref: pd.DataFrame | None = None) -> pd.DataFrame:
     df = df.copy()
     for sig in SIGNALS:
         if sig not in df:
             df[sig] = np.nan
-        df[f"z_{sig}"] = robust_z(df[sig].astype(float))
+        ref_s = None if ref is None else (ref[sig].astype(float) if sig in ref else pd.Series(dtype=float))
+        df[f"z_{sig}"] = robust_z(df[sig].astype(float), ref_s)
     df["score"] = sum(WEIGHTS[s] * df[f"z_{s}"].fillna(0) for s in SIGNALS) / sum(WEIGHTS.values())
     df["coverage"] = df[SIGNALS].notna().sum(axis=1)
     df["hot_index"] = df["score"].apply(hot_index)
@@ -97,14 +100,15 @@ def contributions(row: pd.Series) -> dict[str, float]:
     return {s: round(v / score * total_pts, 1) for s, v in raw.items()}
 
 
-def previous_scores(session: Session, as_of: date) -> dict[str, dict]:
-    """as_of 직전 계산일의 종류별 순위·핫지수 (어제 대비 변동 계산용)."""
-    prev_day = session.scalar(select(func.max(HotScore.as_of)).where(HotScore.as_of < as_of))
+def previous_scores(session: Session, as_of: date, model=HotScore) -> dict[str, dict]:
+    """as_of 직전 계산일의 순위·핫지수 (어제 대비 변동 계산용). model = HotScore(종류) 또는 ItemScore(아이템)."""
+    prev_day = session.scalar(select(func.max(model.as_of)).where(model.as_of < as_of))
     if prev_day is None:
         return {}
-    rows = session.scalars(select(HotScore).where(HotScore.as_of == prev_day)).all()
-    return {r.goods_type: {"rank": r.rank, "hot_index": r.breakdown.get("hot_index", hot_index(r.score)),
-                           "as_of": prev_day.isoformat()} for r in rows}
+    rows = session.scalars(select(model).where(model.as_of == prev_day)).all()
+    name = "goods_type" if model is HotScore else "item"
+    return {getattr(r, name): {"rank": r.rank, "hot_index": r.breakdown.get("hot_index", hot_index(r.score)),
+                               "as_of": prev_day.isoformat()} for r in rows}
 
 
 def _breakdown(row: pd.Series, prev: dict | None) -> dict:
@@ -140,4 +144,22 @@ def run_scoring(session: Session, as_of: date) -> pd.DataFrame:
         scored.loc[gt, "rank_change"] = row["breakdown"]["rank_change"]
         scored.loc[gt, "index_change"] = row["breakdown"]["index_change"]
     scored.attrs["breakdowns"] = {r["goods_type"]: r["breakdown"] for r in rows}
+    scored.attrs["items"] = run_item_scoring(session, as_of, ref=signals)
+    return scored
+
+
+def run_item_scoring(session: Session, as_of: date, ref: pd.DataFrame) -> pd.DataFrame:
+    """주목 아이템 점수: 신호 계산은 종류와 똑같이, 표준화 잣대는 '굿즈 종류들의 분포'(ref).
+    → 아이템 90점과 종류 90점이 같은 뜻이 된다."""
+    signals = compute_type_signals(session, as_of, key="item")
+    if signals.empty:
+        Repository(session).replace_item_scores(as_of, [])
+        return signals
+    scored = score_frame(signals, ref=ref)
+    prev = previous_scores(session, as_of, model=ItemScore)
+    rows = [{"item": it, "score": round(float(r.score), 4), "rank": int(r["rank"]),
+             "breakdown": _breakdown(r, prev.get(it))} for it, r in scored.iterrows()]
+    Repository(session).replace_item_scores(as_of, rows)
+    session.flush()
+    scored.attrs["breakdowns"] = {r["item"]: r["breakdown"] for r in rows}
     return scored

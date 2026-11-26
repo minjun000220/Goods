@@ -55,7 +55,8 @@ def load_snapshots(session: Session, as_of: date, include_unclassified: bool = F
     start, end = _bounds(as_of)
     q = (select(ListingSnapshot.observed_at, ListingSnapshot.price, ListingSnapshot.rank,
                 ListingSnapshot.rank_list, ListingSnapshot.stock_status, ListingSnapshot.review_count, ListingSnapshot.sales_count,
-                Listing.id.label("listing_id"), Listing.goods_type, Listing.seller_type, Listing.title_raw)
+                Listing.id.label("listing_id"), Listing.goods_type, Listing.item, Listing.seller_type,
+                Listing.title_raw)
          .join(Listing, Listing.id == ListingSnapshot.listing_id)
          .where(ListingSnapshot.observed_at >= start, ListingSnapshot.observed_at < end))
     if not include_unclassified:
@@ -68,7 +69,7 @@ def load_snapshots(session: Session, as_of: date, include_unclassified: bool = F
 
 def load_mentions(session: Session, as_of: date, include_unclassified: bool = False) -> pd.DataFrame:
     start, end = _bounds(as_of)
-    q = select(Mention.observed_at, Mention.goods_type, Mention.engagement, Mention.text) \
+    q = select(Mention.observed_at, Mention.goods_type, Mention.item, Mention.engagement, Mention.text) \
         .where(Mention.observed_at >= start, Mention.observed_at < end)
     if not include_unclassified:
         q = q.where(Mention.goods_type.is_not(None))
@@ -181,11 +182,21 @@ def examples(snap: pd.DataFrame, n: int = 3) -> pd.Series:
 # ---------------------------------------------------------------------------
 # 합치기
 # ---------------------------------------------------------------------------
-def compute_type_signals(session: Session, as_of: date) -> pd.DataFrame:
-    """행 = 굿즈 종류, 열 = 신호 + 참고 정보. 값이 없는 신호는 NaN (점수 계산 시 중립 처리)."""
-    snap = load_snapshots(session, as_of)
-    mentions = load_mentions(session, as_of)
-    metrics = load_metrics(session, as_of)
+def compute_type_signals(session: Session, as_of: date, key: str = "goods_type") -> pd.DataFrame:
+    """행 = 굿즈 종류(key="goods_type") 또는 주목 아이템(key="item"), 열 = 신호 + 참고 정보.
+    값이 없는 신호는 NaN (점수 계산 시 중립 처리)."""
+    if key == "item":
+        # 아이템 단위: 분류 여부와 상관없이 아이템이 붙은 상품·글만 모아, 같은 계산을 아이템 이름으로 묶어 한다
+        snap = load_snapshots(session, as_of, include_unclassified=True)
+        mentions = load_mentions(session, as_of, include_unclassified=True)
+        snap = snap[snap["item"].notna()].assign(goods_type=lambda d: d["item"]) if not snap.empty else snap
+        mentions = (mentions[mentions["item"].notna()].assign(goods_type=lambda d: d["item"])
+                    if not mentions.empty else mentions)
+        metrics = pd.DataFrame()               # 검색량·판매처 수 지표는 종류 키워드 단위라 아이템엔 없음
+    else:
+        snap = load_snapshots(session, as_of)
+        mentions = load_mentions(session, as_of)
+        metrics = load_metrics(session, as_of)
     types = set()
     for df in (snap, mentions, metrics):
         if not df.empty:
